@@ -1,0 +1,8 @@
+# Vendored PowerShell modules are verified by per-file SHA-256. Git must not
+# normalise their line endings or a fresh clone fails the drift check on the
+# first checkout - several of the upstream files are genuinely CRLF.
+vendor/psmodules/** -text
+sidecar/psmodules/** -text
+
+# Patch files must survive byte-for-byte; a normalised patch stops applying.
+scripts/psopenad-patches/*.patch -text

@@ -1,0 +1,130 @@
+commit ac4d44d0ba38ed81960b437f5788ded81ce18e8a
+Author: Craig Hair <craig.hair@gmail.com>
+Date:   Sun Jul 12 21:41:28 2026 +1000
+
+    macOS Kerberos: New-OpenADSessionOption -TargetSpnHost + optional GSSAPI/krb5 lib override
+    
+    Two STMC-local patches on top of v0.7.0-stmc1:
+    - New-OpenADSessionOption -TargetSpnHost: decouples the Kerberos SPN host (ldap/<fqdn>, the DC's
+      registered SPN) from the TCP -ComputerName, so you can connect by IP and still authenticate
+      against the DC's SPN when the FQDN is unresolvable (VPN / no DNS). Session.cs
+      OpenADSessionOptions.TargetSpnHost + cmdlet param + OpenADSessionFactory spnHost selection.
+    - PSOPENAD_GSSAPI_LIB / PSOPENAD_KRB5_LIB env override in OnImportAndRemove: optionally load a
+      specific native GSS/krb5 (e.g. MIT krb5) ahead of the system default. Dormant unless set.
+    
+    Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+
+diff --git a/src/PSOpenAD.Module/Commands/OpenADSessionOption.cs b/src/PSOpenAD.Module/Commands/OpenADSessionOption.cs
+index 21a06e4..129d2b9 100644
+--- a/src/PSOpenAD.Module/Commands/OpenADSessionOption.cs
++++ b/src/PSOpenAD.Module/Commands/OpenADSessionOption.cs
+@@ -34,6 +34,10 @@ public class NewOpenADSessionOption : PSCmdlet
+     [Parameter()]
+     public X509Certificate? ClientCertificate { get; set; }
+ 
++    // [STMC fork] Override the SPN host so we can connect by IP but use the DC's registered ldap/<fqdn> SPN.
++    [Parameter()]
++    public string? TargetSpnHost { get; set; }
++
+     protected override void EndProcessing()
+     {
+         string? tracePath = null;
+@@ -52,6 +56,7 @@ public class NewOpenADSessionOption : PSCmdlet
+             OperationTimeout = OperationTimeout,
+             TracePath = tracePath,
+             ClientCertificate = ClientCertificate,
++            TargetSpnHost = TargetSpnHost,
+         });
+     }
+ }
+diff --git a/src/PSOpenAD.Module/OnImportAndRemove.cs b/src/PSOpenAD.Module/OnImportAndRemove.cs
+index 8d175ce..f5fa2bb 100644
+--- a/src/PSOpenAD.Module/OnImportAndRemove.cs
++++ b/src/PSOpenAD.Module/OnImportAndRemove.cs
+@@ -82,6 +82,17 @@ public class OnModuleImportAndRemove : IModuleAssemblyInitializer, IModuleAssemb
+ 
+     internal NativeResolver? Resolver;
+ 
++    // [STMC fork] Prepend an env-var library override to the built-in candidate list, if set.
++    private static string[] WithLibOverride(string envVar, string[] defaults)
++    {
++        string? o = Environment.GetEnvironmentVariable(envVar);
++        if (string.IsNullOrWhiteSpace(o))
++            return defaults;
++        List<string> list = new() { o };
++        list.AddRange(defaults);
++        return list.ToArray();
++    }
++
+     public void OnImport()
+     {
+         Resolver = new NativeResolver();
+@@ -112,16 +123,19 @@ public class OnModuleImportAndRemove : IModuleAssemblyInitializer, IModuleAssemb
+         else
+         {
+             state.GssapiProvider = GssapiProvider.None;
+-            LibraryInfo? gssapiLib = Resolver.CacheLibrary(GSSAPI.LIB_GSSAPI, new[] {
++            // [STMC fork] PSOPENAD_GSSAPI_LIB / PSOPENAD_KRB5_LIB force a specific library (tried first) — e.g.
++            // MIT krb5 on macOS instead of the ancient system Apple Heimdal (broken gss_acquire_cred_with_password,
++            // ignores KRB5_CONFIG). Built-in candidates remain as fallback; also added the .dylib MIT names.
++            LibraryInfo? gssapiLib = Resolver.CacheLibrary(GSSAPI.LIB_GSSAPI, WithLibOverride("PSOPENAD_GSSAPI_LIB", new[] {
+                 MACOS_GSS_FRAMEWORK, // macOS GSS Framework (technically Heimdal)
+-                "libgssapi_krb5.so.2", // MIT krb5
++                "libgssapi_krb5.so.2", "libgssapi_krb5.dylib", // MIT krb5
+                 "libgssapi.so.3", "libgssapi.so", // Heimdal
+-            });
+-            _ = Resolver.CacheLibrary(Kerberos.LIB_KRB5, new[] {
++            }));
++            _ = Resolver.CacheLibrary(Kerberos.LIB_KRB5, WithLibOverride("PSOPENAD_KRB5_LIB", new[] {
+                 "/System/Library/PrivateFrameworks/Heimdal.framework/Heimdal", // macOS Heimdal Framework
+-                "libkrb5.so.3", // MIT krb5
++                "libkrb5.so.3", "libkrb5.dylib", // MIT krb5
+                 "libkrb5.so.26", "libkrb5.so", // Heimdal
+-            });
++            }));
+ 
+             if (gssapiLib == null)
+             {
+diff --git a/src/PSOpenAD.Module/OpenADSessionFactory.cs b/src/PSOpenAD.Module/OpenADSessionFactory.cs
+index cf8b8f1..ef96b10 100644
+--- a/src/PSOpenAD.Module/OpenADSessionFactory.cs
++++ b/src/PSOpenAD.Module/OpenADSessionFactory.cs
+@@ -416,15 +416,19 @@ internal sealed class OpenADSessionFactory
+             }
+ 
+             SecurityContext context;
++            // [STMC fork] SPN host defaults to the connection host, but -TargetSpnHost overrides it so we can
++            // connect the socket by IP yet request the DC's registered ldap/<fqdn> ticket (FQDN unresolvable).
++            string spnHost = string.IsNullOrWhiteSpace(sessionOptions.TargetSpnHost)
++                ? uri.DnsSafeHost : sessionOptions.TargetSpnHost!;
+             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+             {
+-                string targetSpn = $"ldap/{uri.DnsSafeHost}";
++                string targetSpn = $"ldap/{spnHost}";
+                 context = new SspiContext(username, password, auth, targetSpn, channelBindings, signed,
+                     encrypted);
+             }
+             else
+             {
+-                string targetSpn = $"ldap@{uri.DnsSafeHost}";
++                string targetSpn = $"ldap@{spnHost}";
+                 context = new GssapiContext(username, password, auth, targetSpn, channelBindings, signed,
+                     encrypted);
+             }
+diff --git a/src/PSOpenAD/Session.cs b/src/PSOpenAD/Session.cs
+index 6a1de34..6346575 100644
+--- a/src/PSOpenAD/Session.cs
++++ b/src/PSOpenAD/Session.cs
+@@ -31,6 +31,12 @@ public sealed class OpenADSessionOptions
+ 
+     /// <summary>Used for TLS client certificate authentication.</summary>
+     public X509Certificate? ClientCertificate { get; set; }
++
++    /// <summary>[STMC fork] Overrides the hostname used to build the Kerberos/Negotiate SPN
++    /// (ldap@&lt;host&gt; / ldap/&lt;host&gt;) while the TCP connection still targets -ComputerName.
++    /// Lets you connect by IP but authenticate against the DC's registered SPN when the FQDN
++    /// isn't resolvable from the client. Null/empty = use the connection host (default behaviour).</summary>
++    public string? TargetSpnHost { get; set; }
+ }
+ 
+ /// <summary>The OpenADSession class used to encapsulate a session with the caller.</summary>

@@ -1,0 +1,26 @@
+.DS_Store
+.env
+.env.*
+*.log
+
+# Node / Vite
+node_modules/
+app/node_modules/
+app/dist/
+
+# Rust / Tauri
+app/src-tauri/target/
+app/src-tauri/gen/schemas/
+
+# Local clone of upstream PSOpenAD (rebuild source only - see vendor/ + scripts/psopenad-patches/).
+# This front-end repo depends on PSOpenAD; it is not a fork of it.
+/PSOpenAD/
+
+# OS / editor
+.idea/
+.vscode/
+*.sw?
+
+# Internal working notes - never published
+AGENT_NOTES.md
+docs/handover/

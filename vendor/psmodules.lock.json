@@ -1,0 +1,25 @@
+{
+  "note": "Pinned by scripts/sync-secret-vault-modules.ps1. See docs/handover/SHARED_SECRET_VAULT_CONTRACT.md section 5.",
+  "license": "MIT (Microsoft). Redistributed unmodified.",
+  "modules": {
+    "Microsoft.PowerShell.SecretManagement": {
+      "version": "1.1.2",
+      "source": "https://www.powershellgallery.com/api/v2/package/Microsoft.PowerShell.SecretManagement/1.1.2",
+      "nupkgSha256": "0CBB138766531251FD63639CC715DC0BB3DB2BC886007267D854F1FB23F4AA62",
+      "files": {
+        "_manifest/spdx_2.2/manifest.spdx.json": "AE1CD77C0B0433F9998F6B80C5FA07F62062B76D16D6333F8DDC3A633D79B587",
+        "_manifest/spdx_2.2/manifest.spdx.json.sha256": "DA208DCCA85D81FFD2E9DBCA71B3747DE8C4F23E38CFCA8C12E89907C2AE7467",
+        "en-US/about_Microsoft.PowerShell.SecretManagement.help.txt": "3A4878657122AC2F7EBEDEADB4F92533D8118373E562B4FEB0D6268EA74FDAC8",
+        "en-US/about_Microsoft.PowerShell.SecretManagement.md": "61B697E14D87200459F5E9C57E4A4F9107F888F391CAA814DEA2A24BD27DE3BE",
+        "en-US/Microsoft.PowerShell.SecretManagement.dll-Help.xml": "C2A7AF246376A48C13D79B576A39A740506A5DBABEAAACCCA276B7A4C4165901",
+        "LICENSE": "BE5723395260D4F07283D596F4B375810EB695653D48D52A5062C0F7070573A3",
+        "Microsoft.PowerShell.SecretManagement.dll": "AA0C7B336441B42D15D10568162C2D4CD5AF2B4DAA0983E77501A5D77D820C89",
+        "Microsoft.PowerShell.SecretManagement.format.ps1xml": "65C3EC748EFDB4133F5DE91F7972B7B92751364EA429F7404B920AB98E075A88",
+        "Microsoft.PowerShell.SecretManagement.pdb": "45C745FEC4FA92B6B7158B338FEE9BCFF0FDDD4B8B1621B6C1D4B3FEDAD34C39",
+        "Microsoft.PowerShell.SecretManagement.psd1": "B0BF72A38245FB98186785F857B7CE797FA95BBB63025391A238A66EE7F46A90",
+        "System.Runtime.InteropServices.RuntimeInformation.dll": "A0207CF97A06E9CC99BE1ED85EF31BA0963685C90BC30A0114157091A90081C3",
+        "ThirdPartyNotices.txt": "296FF3E4A93BC8C20CA5C20D0E1A70B8C4622FADF0351A37845A63ED52585279"
+      }
+    }
+  }
+}

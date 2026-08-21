@@ -1,0 +1,51 @@
+{
+  "_comment": "Pins what vendor/PSOpenAD was built from. Regenerate with scripts/sync-psopenad-vendor.ps1; check with -VerifyOnly.",
+  "source": "https://github.com/MacsInSpace/PSOpenAD",
+  "upstream": "https://github.com/jborean93/PSOpenAD",
+  "sourceTree": {
+    "commit": "ac4d44d0ba38ed81960b437f5788ded81ce18e8a",
+    "subject": "macOS Kerberos: New-OpenADSessionOption -TargetSpnHost + optional GSSAPI/krb5 lib override",
+    "upstreamBase": "0cadd7af86dc40e990d290014bfe2c5d986c9f7a",
+    "commitsAheadOfUpstream": "2",
+    "commitsBehindUpstream": "0",
+    "checkedAgainstUpstream": "2026-08-21"
+  },
+  "patches": [
+    {
+      "file": "scripts/psopenad-patches/raw-filter-values.patch",
+      "sha256": "779f567404ed128bd9134977f2cd17cfe76f051c8d610f81a6c8c3dea524c12d",
+      "state": "floating"
+    },
+    {
+      "file": "scripts/psopenad-patches/restore-openadobject.patch",
+      "sha256": "79a81c0e96073f2d0a8895cf9097cd2f2ab2e7d112a5acd9d64fb075ad60d3c4",
+      "state": "floating"
+    },
+    {
+      "file": "scripts/psopenad-patches/rootdse-anonymous-paging.patch",
+      "sha256": "e1e605b120f07a86c0991804fa19299ae5e954fb4f3676cdee453ece9db8d408",
+      "state": "floating"
+    },
+    {
+      "file": "scripts/psopenad-patches/target-spn-host-macos.patch",
+      "sha256": "6eaacfb9c47b0cabb9a96566533ca52f000d607f8f0f495220171193a92c448a",
+      "state": "committed-in-fork",
+      "inSourceTreeAt": "ac4d44d0ba38ed81960b437f5788ded81ce18e8a"
+    }
+  ],
+  "vendorBuild": {
+    "moduleVersion": "0.7.0",
+    "vendoredOn": "2026-08-21",
+    "binaries": {
+      "bin/net8.0/PSOpenAD.dll": "79912d4ff6c81497799fa39dab2cc408f1b337c1f9a8758258010ee264a0a3c9",
+      "bin/net8.0/PSOpenAD.Module.dll": "94a0862f1ecc944e972c2178f75ea6b993dfa5f0dc9ab201f711c6efefdcde95"
+    },
+    "builtFromCommit": "ac4d44d0ba38ed81960b437f5788ded81ce18e8a",
+    "patchesApplied": [
+      "scripts/psopenad-patches/raw-filter-values.patch",
+      "scripts/psopenad-patches/restore-openadobject.patch",
+      "scripts/psopenad-patches/rootdse-anonymous-paging.patch"
+    ]
+  },
+  "knownDrift": []
+}

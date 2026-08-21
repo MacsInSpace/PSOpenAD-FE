@@ -1,0 +1,102 @@
+diff --git a/src/PSOpenAD.Module/Commands/GetOpenADGroupMember.cs b/src/PSOpenAD.Module/Commands/GetOpenADGroupMember.cs
+index c5fec19..a455424 100644
+--- a/src/PSOpenAD.Module/Commands/GetOpenADGroupMember.cs
++++ b/src/PSOpenAD.Module/Commands/GetOpenADGroupMember.cs
+@@ -56,13 +56,13 @@ public class GetOpenADGroupMember : GetOpenADOperation<ADPrincipalIdentity>
+                             new FilterEquality("objectCategory", LDAP.LDAPFilter.EncodeSimpleFilterValue("group"))
+                         ),
+                         new FilterExtensibleMatch("1.2.840.113556.1.4.1941", "memberOf",
+-                            LDAP.LDAPFilter.EncodeSimpleFilterValue(group.ObjectName), false)
++                            LDAP.LDAPFilter.EncodeRawFilterValue(group.ObjectName), false)
+                     });
+             }
+             else
+             {
+                 memberOfFilter = new FilterEquality("memberOf",
+-                    LDAP.LDAPFilter.EncodeSimpleFilterValue(group.ObjectName));
++                    LDAP.LDAPFilter.EncodeRawFilterValue(group.ObjectName));
+             }
+ 
+             // Objects don't include their primary group in their memberOf attribute,
+@@ -78,7 +78,7 @@ public class GetOpenADGroupMember : GetOpenADOperation<ADPrincipalIdentity>
+             {
+                 memberOfFilter = new FilterOr(new[] {
+                     memberOfFilter,
+-                    new FilterEquality("primaryGroupID", LDAP.LDAPFilter.EncodeSimpleFilterValue(primaryGroupToken))
++                    new FilterEquality("primaryGroupID", LDAP.LDAPFilter.EncodeRawFilterValue(primaryGroupToken))
+                 });
+             }
+ 
+diff --git a/src/PSOpenAD.Module/Commands/OpenADPrincipalGroupMembership.cs b/src/PSOpenAD.Module/Commands/OpenADPrincipalGroupMembership.cs
+index 5c98e12..fd19cda 100644
+--- a/src/PSOpenAD.Module/Commands/OpenADPrincipalGroupMembership.cs
++++ b/src/PSOpenAD.Module/Commands/OpenADPrincipalGroupMembership.cs
+@@ -44,10 +44,10 @@ public class GetOpenADPrincipalGroupMembership : GetOpenADOperation<ADPrincipalI
+ 
+             if (Recursive) {
+                 groupMembershipFilter = new FilterExtensibleMatch("1.2.840.113556.1.4.1941", "member",
+-                    LDAP.LDAPFilter.EncodeSimpleFilterValue(principal.ObjectName), false);
++                    LDAP.LDAPFilter.EncodeRawFilterValue(principal.ObjectName), false);
+             } else {
+                 groupMembershipFilter = new FilterEquality("member",
+-                    LDAP.LDAPFilter.EncodeSimpleFilterValue(principal.ObjectName));
++                    LDAP.LDAPFilter.EncodeRawFilterValue(principal.ObjectName));
+             }
+ 
+             SecurityIdentifier objectSid = new SecurityIdentifier(principal.Attributes
+@@ -71,7 +71,7 @@ public class GetOpenADPrincipalGroupMembership : GetOpenADOperation<ADPrincipalI
+                 splitSid[splitSid.Length-1] = primaryGroupId;
+                 string primaryGroupSid = string.Join('-', splitSid);
+                 primaryGroupFilter =
+-                    new FilterEquality("objectSid", LDAP.LDAPFilter.EncodeSimpleFilterValue(primaryGroupSid));
++                    new FilterEquality("objectSid", LDAP.LDAPFilter.EncodeRawFilterValue(primaryGroupSid));
+             }
+ 
+             if (primaryGroupFilter != null) {
+diff --git a/src/PSOpenAD/ADIdentity.cs b/src/PSOpenAD/ADIdentity.cs
+index 7709115..acbb515 100644
+--- a/src/PSOpenAD/ADIdentity.cs
++++ b/src/PSOpenAD/ADIdentity.cs
+@@ -88,7 +88,7 @@ public class ADPrincipalIdentity : ADObjectIdentity
+ 
+         if (Regex.Match(value, @"^.*\@.*\..*$").Success)
+         {
+-            filter = new FilterEquality("userPrincipalName", LDAPFilter.EncodeSimpleFilterValue(value));
++            filter = new FilterEquality("userPrincipalName", LDAPFilter.EncodeRawFilterValue(value));
+             return true;
+         }
+         else
+@@ -109,7 +109,7 @@ public class ADPrincipalIdentity : ADObjectIdentity
+             {
+                 username += "$";
+             }
+-            filter = new FilterEquality("sAMAccountName", LDAPFilter.EncodeSimpleFilterValue(username));
++            filter = new FilterEquality("sAMAccountName", LDAPFilter.EncodeRawFilterValue(username));
+             return true;
+         }
+         else
+diff --git a/src/PSOpenAD/LDAP/Filter.cs b/src/PSOpenAD/LDAP/Filter.cs
+index f8619cf..9c7137d 100644
+--- a/src/PSOpenAD/LDAP/Filter.cs
++++ b/src/PSOpenAD/LDAP/Filter.cs
+@@ -104,6 +104,20 @@ $";
+         return ParseFilterValue(value.AsSpan(), 0, value.Length, out var _);
+     }
+ 
++    /// <summary>Encodes a raw, unescaped value for use in a filter assertion.</summary>
++    /// <remarks>
++    /// Use this for a value that is data rather than filter syntax - a distinguished name read back from the
++    /// directory, or a name supplied by the caller. <see cref="EncodeSimpleFilterValue"/> parses its input as
++    /// filter text, so it rejects an unescaped '(' and would decode a literal '\28' the value happens to
++    /// contain. A filter assertion is sent as an ASN.1 OCTET STRING, so a raw value needs no escaping at all.
++    /// </remarks>
++    /// <param name="value">The raw, unescaped value.</param>
++    /// <returns>The raw bytes of the value.</returns>
++    public static Memory<byte> EncodeRawFilterValue(string value)
++    {
++        return Encoding.UTF8.GetBytes(value);
++    }
++
+     /// <summary>Serializes the LDAP filter value to a string usable in an LDAP filter.</summary>
+     /// <remarks>
+     /// This is a very naive method of serializing the value, only pure ASCII chars will be preserved, everything

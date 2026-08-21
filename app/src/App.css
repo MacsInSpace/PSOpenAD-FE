@@ -1,0 +1,2243 @@
+/* ===========================================================================
+   PSOpenAD-FE - design system.
+
+   Implements docs/PSOPENAD_FE_StyleGuide.md. Shared with DeployKit; the two
+   apps must not drift, so changes belong in both.
+
+   Two modes only, light and dark. `:root` carries the complete light palette;
+   dark is redefined for the system preference and for an explicit
+   data-theme="dark", so all three viewer states resolve a full set. No colour
+   is ever defined only inside a media or attribute block (section 1).
+   =========================================================================== */
+
+:root {
+  --bg: #edf3fa;
+  --surface: #ffffff;
+  --surface2: #f5f8fc;
+  --surface3: #e8eff7;
+
+  --border: #d2ddea;
+  --border2: #9fb2c8;
+
+  --accent: #1769d8;
+  --accent2: #0d58ba;
+  --accent-dim: #0f4fae;
+
+  --green: #087b5b;
+  --green-dim: #9ccdbc;
+  --amber: #925800;
+  --amber-dim: #e0c48c;
+  --red: #ae2638;
+  --red-dim: #e5aeb5;
+  --purple: #6747b8;
+
+  --text: #10233e;
+  --text2: #3d536e;
+  --text3: #5a7089;
+
+  /* Selection: MMC paints the whole row, not just the text. */
+  --sel-bg: #cfe2fa;
+  --sel-bg-inactive: #e4ecf6;
+  --sel-text: #10233e;
+
+  /* Object glyphs. Two tones per icon, both theme-aware. */
+  --icon-user: #3f6ea8;
+  --icon-group: #4b7fbf;
+  --icon-computer: #5b6b7f;
+  --icon-screen: #cfe0f2;
+  --icon-folder: #d8a43c;
+  --icon-folder2: #e8c880;
+  --icon-generic: #8c9bad;
+
+  --sans: "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui,
+    -apple-system, sans-serif;
+  --cond: "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui,
+    -apple-system, sans-serif;
+  --mono: "SFMono-Regular", "Cascadia Code", "Cascadia Mono", Consolas,
+    ui-monospace, monospace;
+
+  --radius-shell: 0;
+  --radius-card: 5px;
+  --radius-control: 4px;
+
+  --header-height: 32px;
+  --menubar-height: 22px;
+  --row-height: 26px;
+  --tree-w: 268px;
+
+  /* Shared verbatim with a sibling app so both render dropdowns
+     identically; redefined per theme because the stroke colour is baked in. */
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m2.5 4.25 3.5 3.5 3.5-3.5' stroke='%235a7089' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  color-scheme: light;
+  color: var(--text);
+  font-family: var(--sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #08111f;
+    --surface: #0d1828;
+    --surface2: #142236;
+    --surface3: #1b2d45;
+    --border: #223650;
+    --border2: #355273;
+    --accent: #4f8ff7;
+    --accent2: #7bb0ff;
+    --accent-dim: #2766cc;
+    --green: #43c7a2;
+    --green-dim: #1d6b59;
+    --amber: #f2b760;
+    --amber-dim: #765426;
+    --red: #f47777;
+    --red-dim: #753a43;
+    --purple: #b397f6;
+    --text: #f2f6fb;
+    --text2: #b5c2d3;
+    --text3: #7789a1;
+    --sel-bg: #1d3f6b;
+    --sel-bg-inactive: #1a2a40;
+    --sel-text: #f2f6fb;
+    --icon-user: #7fb0e8;
+    --icon-group: #8fbdf0;
+    --icon-computer: #93a4b8;
+    --icon-screen: #1b2d45;
+    --icon-folder: #d9a94b;
+    --icon-folder2: #8a6a2a;
+    --icon-generic: #7789a1;
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m2.5 4.25 3.5 3.5 3.5-3.5' stroke='%237789a1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #08111f;
+  --surface: #0d1828;
+  --surface2: #142236;
+  --surface3: #1b2d45;
+  --border: #223650;
+  --border2: #355273;
+  --accent: #4f8ff7;
+  --accent2: #7bb0ff;
+  --accent-dim: #2766cc;
+  --green: #43c7a2;
+  --green-dim: #1d6b59;
+  --amber: #f2b760;
+  --amber-dim: #765426;
+  --red: #f47777;
+  --red-dim: #753a43;
+  --purple: #b397f6;
+  --text: #f2f6fb;
+  --text2: #b5c2d3;
+  --text3: #7789a1;
+  --sel-bg: #1d3f6b;
+  --sel-bg-inactive: #1a2a40;
+  --sel-text: #f2f6fb;
+  --icon-user: #7fb0e8;
+  --icon-group: #8fbdf0;
+  --icon-computer: #93a4b8;
+  --icon-screen: #1b2d45;
+  --icon-folder: #d9a94b;
+  --icon-folder2: #8a6a2a;
+  --icon-generic: #7789a1;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m2.5 4.25 3.5 3.5 3.5-3.5' stroke='%237789a1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* -- Shell ---------------------------------------------------------------- */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--header-height);
+  min-height: var(--header-height);
+  padding: 0 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-mark {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.brand {
+  font-family: var(--cond);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Domain tabs - square, never pills (section 1). */
+.domain-tabs {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.domain-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.domain-tab:hover {
+  background: var(--surface3);
+  color: var(--text);
+  border-color: var(--border2);
+}
+
+.domain-tab.is-active {
+  background: var(--surface3);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.domain-tab.is-add {
+  padding: 0 8px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* -- Badges and status dots (section 5) ------------------------------------------ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge-dim {
+  background: var(--surface3);
+  color: var(--text3);
+}
+
+.badge-warn {
+  background: color-mix(in srgb, var(--amber) 12%, transparent);
+  border-color: var(--amber-dim);
+  color: var(--amber);
+}
+
+.badge-err {
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+  border-color: var(--red-dim);
+  color: var(--red);
+}
+
+.dot-status {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: box-shadow 0.3s;
+}
+
+.dot-ok {
+  background: var(--green);
+  box-shadow: 0 0 4px var(--green);
+}
+
+.dot-err {
+  background: var(--red);
+  box-shadow: 0 0 4px var(--red);
+}
+
+.dot-pending {
+  background: var(--amber);
+}
+
+/* -- Controls (section 5) -------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 74px;
+  justify-content: center;
+  padding: 4px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface3);
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+.btn:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface3);
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="search"],
+input:not([type]),
+select,
+textarea {
+  padding: 4px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  transition: border-color 0.15s;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input::placeholder {
+  color: var(--text3);
+}
+
+input[readonly] {
+  background: var(--surface3);
+  color: var(--text2);
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 18px;
+  background-image: var(--select-chevron);
+  background-position: right 6px center;
+  background-repeat: no-repeat;
+}
+
+.linkish {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.linkish:hover {
+  text-decoration: underline;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.muted {
+  color: var(--text3);
+}
+
+/* -- Console: menu bar ---------------------------------------------------- */
+
+.console {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  background: var(--surface);
+}
+
+.menubar {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  height: var(--menubar-height);
+  min-height: var(--menubar-height);
+  padding: 0 4px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.menubar-item {
+  padding: 0 9px;
+  border: 0;
+  background: none;
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: default;
+}
+
+.menubar-item u {
+  text-decoration: none;
+}
+
+/* Alt reveals the mnemonics, exactly as Windows does. */
+.menubar:focus-within .menubar-item u,
+.menubar-item.is-open u {
+  text-decoration: underline;
+}
+
+.menubar-item:hover,
+.menubar-item.is-open {
+  background: var(--surface3);
+  color: var(--text);
+}
+
+/* -- Console: toolbar ----------------------------------------------------- */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  height: var(--header-height);
+  min-height: var(--header-height);
+  padding: 0 6px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.tb-btn:hover:not(:disabled) {
+  background: var(--surface3);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.tb-btn:disabled {
+  color: var(--text3);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.tb-sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 5px;
+  background: var(--border);
+}
+
+.toolbar-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.toolbar-filter label {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.toolbar-filter select {
+  height: 22px;
+  padding-block: 0;
+  font-size: 11.5px;
+}
+
+/* -- Console: body split -------------------------------------------------- */
+
+.console-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  /* Overridden inline while the splitter is dragged. */
+  grid-template-columns: var(--tree-w) 5px minmax(0, 1fr);
+}
+
+.splitter {
+  background: var(--border);
+  cursor: col-resize;
+}
+
+.splitter:hover {
+  background: var(--accent);
+}
+
+/* Keep the drag from selecting text across the whole console. */
+body.is-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* -- Console tree --------------------------------------------------------- */
+
+.tree-pane {
+  min-width: 0;
+  background: var(--surface);
+  overflow-y: auto;
+  /* Labels ellipsis rather than forcing a horizontal scroll - otherwise
+     clicking a deep node scrolls the whole pane sideways under the pointer. */
+  overflow-x: hidden;
+}
+
+.tree-scroll {
+  padding: 4px 0 12px;
+}
+
+.tree-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Nested levels carry MMC's connector line. */
+.tree-list .tree-list {
+  margin-left: 15px;
+  border-left: 1px dotted var(--border2);
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: var(--row-height);
+  padding-right: 8px;
+  white-space: nowrap;
+  color: var(--text2);
+}
+
+.tree-row:not(.is-static):hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.tree-row.is-selected {
+  background: var(--sel-bg);
+  color: var(--sel-text);
+}
+
+.tree-twist {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text3);
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.tree-twist.is-open {
+  transform: rotate(90deg);
+}
+
+.tree-row:hover .tree-twist,
+.tree-row.is-selected .tree-twist {
+  color: var(--text2);
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: default;
+}
+
+.tree-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* -- Result pane ---------------------------------------------------------- */
+
+.results-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface);
+}
+
+/* Panel header: one 32px line - title, then the OU path in mono (section 3). */
+.results-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  height: var(--header-height);
+  min-height: var(--header-height);
+  padding: 0 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.results-title {
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.results-path {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-frame {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--surface);
+}
+
+/* Fixed layout so a long description cannot squeeze Type or Logon name into
+   ellipsis - ADUC's columns hold their width and clip their own content. */
+.object-table,
+.sheet-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.object-table th:nth-child(2) {
+  width: 172px;
+}
+
+.object-table th:nth-child(3) {
+  width: 42%;
+}
+
+.object-table th:nth-child(4) {
+  width: 168px;
+}
+
+.sheet-table th:first-child {
+  width: 38%;
+}
+
+.object-table thead th,
+.sheet-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: var(--header-height);
+  padding: 0;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-weight: 400;
+}
+
+.object-table thead th + th,
+.sheet-table thead th + th {
+  border-left: 1px solid var(--border);
+}
+
+.col-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.col-head:hover {
+  background: var(--surface3);
+  color: var(--text2);
+}
+
+.col-sort {
+  font-size: 8px;
+}
+
+.sheet-table thead th {
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+}
+
+.object-table td,
+.sheet-table td {
+  height: var(--row-height);
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.object-table tbody {
+  outline: none;
+}
+
+.object-table tbody tr {
+  cursor: default;
+}
+
+.object-table tbody tr:not(.no-hover):hover td {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.object-table tbody tr.is-selected td,
+.object-table tbody tr.is-selected:hover td {
+  background: var(--sel-bg);
+  color: var(--sel-text);
+}
+
+.name-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Directory data is data - mono. UI chrome is sans (section 3). */
+.name-cell,
+.desc-cell {
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.object-table td.type-cell {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--text3);
+}
+
+.desc-cell {
+  color: var(--text3);
+}
+
+td.empty {
+  height: auto;
+  padding: 44px 16px;
+  color: var(--text3);
+  text-align: center;
+  white-space: normal;
+  font-family: var(--sans);
+}
+
+.not-set {
+  color: var(--text3);
+}
+
+/* -- Status bar ----------------------------------------------------------- */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0 12px;
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.status-bar > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-right {
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.status-error {
+  color: var(--red);
+}
+
+/* -- Context menu / menu popups ------------------------------------------- */
+
+.ctx-menu {
+  position: fixed;
+  z-index: 400;
+  min-width: 196px;
+  padding: 3px 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-control);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--text2);
+  user-select: none;
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--row-height);
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.ctx-item:hover:not(:disabled),
+.ctx-item:focus-visible {
+  background: var(--accent-dim);
+  color: #fff;
+  outline: none;
+}
+
+.ctx-item:disabled {
+  color: var(--text3);
+  opacity: 0.55;
+}
+
+/* ADUC bolds the double-click default. */
+.ctx-item.is-default {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ctx-item.is-danger:hover:not(:disabled) {
+  background: var(--red);
+  color: #fff;
+}
+
+.ctx-accel,
+.ctx-submenu-marker {
+  margin-left: auto;
+  padding-left: 20px;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.ctx-submenu-marker {
+  font-family: var(--sans);
+  padding-left: 14px;
+}
+
+.ctx-item:hover:not(:disabled) .ctx-accel,
+.ctx-item:hover:not(:disabled) .ctx-submenu-marker {
+  color: inherit;
+}
+
+.ctx-sep {
+  height: 1px;
+  margin: 3px 0;
+  background: var(--border);
+}
+
+.ctx-label {
+  padding: 4px 12px 3px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+/* -- Dialogs -------------------------------------------------------------- */
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(8, 17, 31, 0.42);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-height: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-card);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
+}
+
+.props-dialog {
+  width: 720px;
+  height: min(600px, 100%);
+  max-width: 100%;
+}
+
+/* ---- Membership tabs and the object picker ------------------------------ */
+
+.membership {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 10px;
+}
+
+.membership .list-frame {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.membership-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sheet-table th.col-actions,
+.sheet-table td.col-actions {
+  width: 92px;
+  text-align: right;
+  padding-right: 8px;
+}
+
+/* Row actions stay hidden until hover, per the style guide's table rules. */
+.row-remove {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--text3);
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.sheet-table tr:hover .row-remove,
+.row-remove:focus-visible {
+  opacity: 1;
+}
+
+.row-remove:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+.row-confirm {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.linkish.is-danger {
+  color: var(--red);
+  font-weight: 500;
+}
+
+.container-picker {
+  width: min(560px, 100%);
+  height: min(560px, 100%);
+}
+
+.container-tree {
+  padding: 6px 0;
+  overflow: auto;
+}
+
+.container-tree .tree-row.is-dimmed {
+  opacity: 0.4;
+}
+
+.picker-dialog {
+  width: min(720px, 100%);
+  height: min(600px, 100%);
+}
+
+.picker-search {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.picker-search input[type="search"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.picker-search select {
+  width: 140px;
+}
+
+.picker-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.picker-body .list-frame {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.picker-dialog .sheet-table tbody tr {
+  cursor: default;
+}
+
+.picker-dialog .sheet-table tbody tr:hover td {
+  background: var(--surface2);
+}
+
+.picker-dialog .sheet-table tbody tr.is-selected td {
+  background: var(--sel-bg);
+  color: var(--sel-text);
+}
+
+.picker-dialog .sheet-table tbody tr.is-dimmed td {
+  opacity: 0.45;
+}
+
+.picker-chosen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 16px;
+  max-height: 84px;
+  overflow: auto;
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-control);
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* A pending edit is marked, so it is obvious what Apply is about to write. */
+.multi-value {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 3px 0;
+}
+
+.multi-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.multi-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.multi-list li .mono {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.multi-list li.is-removing .mono {
+  text-decoration: line-through;
+  color: var(--red);
+}
+
+.multi-list li.is-adding .mono {
+  color: var(--green);
+}
+
+.multi-add {
+  display: flex;
+  gap: 6px;
+}
+
+.multi-add .field-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.multi-add .btn {
+  min-width: 0;
+}
+
+.dn-field {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.dn-field .field-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.dn-field .btn {
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.field-input.is-dirty,
+.attr-input.is-dirty {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface2));
+}
+
+.attr-input {
+  width: 100%;
+  padding: 2px 6px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.attr-input:hover:not(:focus) {
+  border-color: var(--border);
+}
+
+.attr-input:focus {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--text);
+  outline: none;
+}
+
+.attr-readonly {
+  color: var(--text3);
+}
+
+.footer-note {
+  margin-right: auto;
+  align-self: center;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.footer-error {
+  margin-right: auto;
+  align-self: center;
+  max-height: 44px;
+  font-size: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.bulk-dialog {
+  width: min(620px, 100%);
+  max-height: min(640px, 100%);
+}
+
+.bulk-dialog .dialog-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bulk-preview {
+  flex: 1;
+  min-height: 120px;
+  max-height: 340px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.bulk-ok {
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.bulk-fail {
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  white-space: normal;
+}
+
+.fsmo-dialog {
+  width: min(520px, 100%);
+}
+
+.ask-dialog {
+  width: min(460px, 100%);
+}
+
+.new-dialog {
+  width: min(560px, 100%);
+}
+
+.ask-message {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text2);
+}
+
+/* Destructive primary - ADUC's delete confirmation defaults to Yes, so the
+   button must read as dangerous rather than merely available (section 5). */
+.btn-danger {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--red);
+  filter: brightness(1.1);
+  color: #fff;
+}
+
+.find-dialog {
+  width: 460px;
+  max-width: 100%;
+}
+
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--header-height);
+  min-height: var(--header-height);
+  padding: 0 8px 0 12px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  font-family: var(--cond);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dialog-close {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--text3);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.dialog-close:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+/* A user has nine tabs and they do not fit on one row. Classic Windows
+   property sheets wrap onto a second row rather than clipping, which is both
+   the authentic behaviour and the only one that stays correct as tabs are
+   added - clipping silently made Attribute Editor unreachable. */
+.tabstrip {
+  display: flex;
+  /* Wrap stays as the safety net. Nine tabs now fit on one row with room to
+     spare, but clipping is the one failure mode that must never come back -
+     it silently made Attribute Editor unreachable. */
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 6px 10px 0;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  position: relative;
+  padding: 5px 9px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  background: none;
+  color: var(--text3);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.tab + .tab::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  bottom: 5px;
+  width: 1px;
+  background: var(--border);
+}
+
+/* An active tab draws its own full border, so a divider either side of it
+   would double up into a two-pixel line. */
+.tab.is-active::before,
+.tab.is-active + .tab::before {
+  display: none;
+}
+
+.tab:hover {
+  color: var(--text2);
+}
+
+.tab.is-active {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* The active tab sits on the strip's bottom border, MMC style - but only when
+   it is on the last row. Wrapped rows would otherwise punch a hole through the
+   row beneath them. */
+.tabstrip .tab.is-active:not(:last-child) {
+  margin-bottom: 0;
+}
+
+.tab.is-active {
+  margin-bottom: -1px;
+  padding-bottom: 6px;
+}
+
+.dialog-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px 16px;
+  background: var(--surface);
+}
+
+.dialog-body > .list-frame {
+  height: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+}
+
+.dialog-note {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  color: var(--text3);
+  line-height: 1.5;
+}
+
+/* -- Sidecar log viewer --------------------------------------------------- */
+
+.log-dialog {
+  width: min(900px, 100%);
+  height: min(600px, 100%);
+}
+
+.log-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.log-toolbar input[type="search"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-toolbar .btn {
+  min-width: 0;
+}
+
+.log-follow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+.log-follow input {
+  accent-color: var(--accent);
+}
+
+.log-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.log-options {
+  border-bottom: 1px solid var(--border);
+}
+
+.log-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 8px 12px;
+  overflow: auto;
+  background: var(--surface);
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log-line {
+  display: block;
+}
+
+.log-line.is-bad {
+  color: var(--red);
+}
+
+.log-line.is-good {
+  color: var(--green);
+}
+
+/* Property-sheet fields: label column, value column - ADUC's General tab. */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sheet-ident {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet-ident-name {
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sheet-ident-kind {
+  font-size: 11.5px;
+  color: var(--text3);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.field-label {
+  font-size: 11.5px;
+  color: var(--text2);
+  text-align: right;
+}
+
+.field-input {
+  width: 100%;
+  font-size: 12px;
+}
+
+.field-input.mono {
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.account-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.account-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.account-legend {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 2px;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-state {
+  flex: 1;
+  font-size: 12px;
+}
+
+.state-bad {
+  color: var(--red);
+}
+
+.account-date {
+  width: 150px;
+  margin-left: 6px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.checkbox-row input {
+  accent-color: var(--accent);
+}
+
+.checkbox-row + .field-hint {
+  margin-top: 6px;
+  padding-left: 22px;
+}
+
+.sheet-actions {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* -- Connect stage -------------------------------------------------------- */
+
+.connect-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 20px;
+  overflow: auto;
+  background: var(--bg);
+}
+
+.connect-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(560px, 100%);
+  padding: 18px 20px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.connect-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* No heroes (section 1): the sign-in is a connection dialog, not a landing page. */
+.connect-header .brand {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  margin: 0;
+}
+
+.connect-header h1 {
+  margin: 0;
+  font-family: var(--cond);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.connect-compact-title {
+  margin: 0;
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.field-hint code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--purple);
+}
+
+.connect-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--text2);
+}
+
+.connect-form input,
+.connect-form select {
+  width: 100%;
+}
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.label-with-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.field-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--border2);
+  border-radius: 50%;
+  color: var(--text3);
+  font-size: 9px;
+  text-decoration: none;
+  cursor: help;
+}
+
+.remember-row {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 7px;
+}
+
+.remember-row input {
+  width: auto !important;
+  accent-color: var(--accent);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text3);
+}
+
+.ok-msg {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  color: var(--green);
+}
+
+.connect-form > button[type="submit"] {
+  align-self: flex-start;
+  padding: 6px 16px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.connect-form > button[type="submit"]:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.connect-form > button[type="submit"]:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Saved connections. */
+.saved-connections {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.saved-heading {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+}
+
+.saved-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+.saved-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.saved-connect {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+  padding: 5px 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.saved-connect:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface3);
+}
+
+.saved-connect:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.saved-label {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.saved-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-edit,
+.saved-delete {
+  padding: 4px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text3);
+  font-family: var(--sans);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.saved-edit:hover,
+.saved-delete:hover {
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+.saved-delete:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Reset-password form, inside the property sheet's Account tab. */
+.reset-pw-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.reset-pw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reset-pw-form h3 {
+  margin: 0;
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.reset-pw-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--text2);
+}
+
+.reset-pw-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* -- Errors --------------------------------------------------------------- */
+
+.error-block {
+  margin: 0;
+  padding: 8px 10px;
+  max-height: 180px;
+  overflow: auto;
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+  border: 1px solid var(--red-dim);
+  border-radius: var(--radius-control);
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin: auto;
+  padding: 24px;
+  max-width: 620px;
+}
+
+.attempt-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.attempt-list .ok {
+  color: var(--green);
+}
+
+.attempt-list .fail {
+  color: var(--text3);
+}
+
+/* -- Object glyphs -------------------------------------------------------- */
+
+.obj-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.obj-icon svg {
+  display: block;
+}
+
+.kind-user .glyph-fg {
+  fill: var(--icon-user);
+}
+
+.kind-group .glyph-fg {
+  fill: var(--icon-group);
+}
+
+.kind-group .glyph-bg {
+  fill: var(--icon-group);
+  opacity: 0.55;
+}
+
+.kind-computer .glyph-fg {
+  fill: var(--icon-computer);
+}
+
+.kind-computer .glyph-screen {
+  fill: var(--icon-screen);
+}
+
+.kind-ou .glyph-fg,
+.kind-container .glyph-bg {
+  fill: var(--icon-folder);
+}
+
+.kind-container .glyph-bg {
+  fill: var(--icon-folder2);
+}
+
+.kind-ou .glyph-screen {
+  fill: var(--surface);
+}
+
+.kind-ou .glyph-rule {
+  stroke: var(--icon-folder);
+}
+
+.kind-other .glyph-bg {
+  fill: var(--icon-generic);
+  opacity: 0.5;
+}
+
+.kind-other .glyph-fg {
+  fill: var(--icon-generic);
+}
+
+.obj-overlay {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  pointer-events: none;
+}
+
+.overlay-disabled {
+  fill: var(--red);
+}
+
+.obj-icon.is-disabled svg:first-child {
+  opacity: 0.55;
+}
+
+/* -- Motion --------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* -- Narrow windows ------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  :root {
+    --tree-w: 210px;
+  }
+
+  .object-table td.mono,
+  .object-table th:nth-child(4) {
+    display: none;
+  }
+}
+
+/* -- Add/Remove Columns ------------------------------------------------------
+   The classic four-part layout: available list, Add/Remove, displayed list,
+   Move Up/Down. The two button stacks are centred against the lists rather
+   than top-aligned, which is what the original does and what stops the dialog
+   reading as three unrelated pieces. */
+.columns-dialog {
+  width: min(620px, 100%);
+  height: min(420px, 100%);
+}
+
+.columns-body {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.columns-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* .field-label is right-aligned for the form rows it was written for; a
+   caption sitting above its own list box belongs at the left edge of it. */
+.columns-col .field-label {
+  text-align: left;
+}
+
+.columns-mid {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.columns-mid .btn {
+  white-space: nowrap;
+}
+
+.column-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  list-style: none;
+  margin: 0;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.column-item {
+  display: block;
+  width: 100%;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  text-align: left;
+  cursor: default;
+}
+
+.column-item:hover {
+  background: var(--surface2);
+}
+
+.column-item.is-selected {
+  background: var(--accent);
+  color: #fff;
+}
+
+.column-empty {
+  padding: 6px;
+  color: var(--text3);
+  font-size: 11.5px;
+}
+
+/* A long distinguished name must not stretch the pane; the cell scrolls its
+   own overflow instead, exactly as the description column already does. */
+.object-table td.cell-text {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
