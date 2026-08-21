@@ -1,5 +1,5 @@
 //! Saved AD connections: non-secret records on disk, passwords in the shared
-//! secret vault (see docs/handover/SHARED_SECRET_VAULT_CONTRACT.md).
+//! secret vault (see the shared secret vault design: the Rust host keeps no secrets.
 //!
 //! The record holds a `secretRef` - the vault name the sidecar resolves at
 //! connect time - never the password itself. Nothing here calls an OS

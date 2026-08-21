@@ -1,5 +1,4 @@
-# Shared secret vault: the sidecar half of
-# docs/handover/SHARED_SECRET_VAULT_CONTRACT.md sections 2, 3 and 7.
+# Shared secret vault: the sidecar half of the saved-connection design.
 #
 # Saved-connection passwords live here, not in the Rust host. The Tauri side
 # keeps only non-secret connection records plus a vault reference; the password
@@ -140,7 +139,7 @@ function Get-OpenAdFeVaultStatus {
 
 function Get-OpenAdFeConnectionSecretName {
     param([Parameter(Mandatory)][string]$Id)
-    # Contract section 3, as amended for this product: the name is never itself
+    # the name is never itself
     # sensitive, because Get-SecretInfo lists names in the clear.
     return "ad/connection/$Id"
 }
