@@ -3,7 +3,7 @@
     Vendor Microsoft.PowerShell.SecretManagement into vendor/psmodules/ and pin it.
 
 .DESCRIPTION
-    Implements the vendoring half of docs/handover/SHARED_SECRET_VAULT_CONTRACT.md
+    Vendors the secret vault modules with a lockfile of exact checksums
     section 5: PSGallery is unreachable behind the F5 and in CI, so Install-Module at
     runtime is not an option. The module is downloaded here, staged into
     vendor/psmodules/<Name>/<Version>/, and pinned in vendor/psmodules.lock.json with
@@ -143,7 +143,7 @@ try {
     }
 
     $lock = [ordered]@{
-        note    = 'Pinned by scripts/sync-secret-vault-modules.ps1. See docs/handover/SHARED_SECRET_VAULT_CONTRACT.md section 5.'
+        note    = 'Pinned by scripts/sync-secret-vault-modules.ps1. Checksums must match the sibling copy exactly.'
         license = 'MIT (Microsoft). Redistributed unmodified.'
         modules = $lockModules
     }
