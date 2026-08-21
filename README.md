@@ -8,19 +8,32 @@ An MMC console, on purpose. Menu bar, toolbar, console tree, result pane,
 status bar - and ADUC's exact verb wording, so anyone who has used Active
 Directory Users and Computers already knows how to drive it.
 
+![The console: tree, result pane, toolbar and status bar](docs/screenshots/console.png)
+
 - **Tree** - `Active Directory Users and Computers [dc]` -> Saved Queries -> the
-  domain -> its containers, loaded as you expand them
-- **List** - Name / Type / Description (plus Logon name), sortable, keyboard
-  navigable
+  domain -> its containers, loaded as you expand them; Deleted Objects appears
+  under the domain when the forest has the Recycle Bin enabled
+- **List** - Name / Type / Description / Logon name by default; View > Add/Remove
+  Columns to change it; sortable, keyboard navigable, multi-select with bulk
+  verbs
 - **Right-click** anything for its verbs; **double-click** or **Alt+Enter** opens
   the tabbed Properties sheet
 - **Ctrl+F** finds across the domain and drops the results in Saved Queries;
   **F5** refreshes; **Alt+<-/->** walk the navigation history
 - Light and dark, following the system setting
 
-Write verbs (New, Move, Rename, Delete, Disable Account) appear in the menus but
-are **greyed** - the sidecar has no write method for them yet beyond password
-reset. 
+![A user's Account tab: logon names, lockout, account options, expiry](docs/screenshots/properties-account.png)
+
+Every verb is live: New (user, group, computer, contact, OU), Move (browse for
+the destination), Rename, Delete, Copy from a template, Enable/Disable, Unlock,
+Reset Password, account options and expiry, Members and Member Of with an
+object picker, Managed By, protect from accidental deletion, Restore from the
+Recycle Bin, Operations Masters, and a computer's Reset Account.
+
+![The Attribute Editor](docs/screenshots/attribute-editor.png)
+
+The screenshots are of the built-in demo forest (`corp.example.com`), which is
+fictional. Nothing in this repository refers to a real directory.
 
 Design rules live in [`docs/PSOPENAD_FE_StyleGuide.md`](docs/PSOPENAD_FE_StyleGuide.md).
 

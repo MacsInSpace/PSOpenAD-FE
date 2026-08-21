@@ -318,6 +318,13 @@ export async function restoreObject(
   });
 }
 
+export type PwshStatus = { found: boolean; path: string | null; version: string | null };
+
+/** Is PowerShell 7 installed? The one dependency the app cannot bundle. */
+export async function getPwshStatus() {
+  return invoke<PwshStatus>("pwsh_status");
+}
+
 /** Group managed service accounts (gMSA). */
 export async function getServiceAccounts(domainKey: string, searchBase?: string) {
   const raw = await invoke<unknown>("get_service_accounts", { domainKey, searchBase });

@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ConnectDialog } from "./components/ConnectDialog";
 import { DirectoryBrowser } from "./components/DirectoryBrowser";
-import { disconnectDomain, isDemo, type DomainSession } from "./lib/api";
+import { PowerShellRequired } from "./components/PowerShellRequired";
+import { disconnectDomain, isDemo, type DomainSession, getPwshStatus } from "./lib/api";
 import "./App.css";
 
 /** 3268/3269 are the Global Catalog ports: partial attribute set, read-only. */
@@ -21,6 +22,15 @@ function App() {
   const [sessions, setSessions] = useState<DomainSession[]>([]);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [showConnect, setShowConnect] = useState(true);
+  /* null = not asked yet; the dialog only shows on a definite "not found". */
+  const [pwshMissing, setPwshMissing] = useState<boolean | null>(null);
+
+  const checkPwsh = () => {
+    void getPwshStatus()
+      .then((st) => setPwshMissing(!st.found))
+      .catch(() => setPwshMissing(null));
+  };
+  useEffect(checkPwsh, []);
 
   const active = useMemo(
     () => sessions.find((s) => s.domainKey === activeKey) ?? null,
@@ -54,6 +64,7 @@ function App() {
 
   return (
     <div className={`shell${onConsole ? " is-console" : " is-connect"}`}>
+      {pwshMissing === true && <PowerShellRequired onRecheck={checkPwsh} />}
       <header className="titlebar">
         <span className="brand-mark" aria-hidden />
         <span className="brand">PSOpenAD-FE</span>

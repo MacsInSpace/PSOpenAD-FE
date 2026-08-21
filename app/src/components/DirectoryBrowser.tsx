@@ -1136,11 +1136,22 @@ export function DirectoryBrowser({ session }: Props) {
             onClick={() => setNewIn({ path: container, type: "organizationalUnit" })}
           />
           <span className="tb-sep" />
+          {/* ADUC's toolbar Properties acts on whatever has focus: the selected
+              row if there is one, otherwise the container open in the tree.
+              Greying it out until a row is picked made it look broken. */}
           <TB
             glyph="properties"
             label="Properties (Alt+Enter)"
-            disabled={!selected}
-            onClick={() => selected && openProperties(selected)}
+            disabled={showingPseudo}
+            onClick={() =>
+              selected
+                ? openProperties(selected)
+                : openProperties({
+                    distinguishedName: container,
+                    name: containerName(container, rootDn),
+                    objectClass: container === rootDn ? "domainDNS" : "organizationalUnit",
+                  } as DirectoryRow)
+            }
           />
 
           <div className="toolbar-filter">

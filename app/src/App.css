@@ -1445,6 +1445,9 @@ td.empty {
 .tab {
   position: relative;
   padding: 5px 9px;
+  /* "Member Of" on two lines is not a tab, it is a layout failure. The strip
+     wraps whole tabs to a new row instead. */
+  white-space: nowrap;
   border: 1px solid transparent;
   border-bottom: 0;
   border-radius: var(--radius-control) var(--radius-control) 0 0;
@@ -2240,4 +2243,22 @@ td.empty {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* -- PowerShell 7 required --------------------------------------------------- */
+.pwsh-dialog {
+  width: min(480px, 100%);
+}
+
+.pwsh-dialog .dialog-body p {
+  margin: 0 0 10px;
+  line-height: 1.45;
+}
+
+.pwsh-dialog code {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--surface2);
 }

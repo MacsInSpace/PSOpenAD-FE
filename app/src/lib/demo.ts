@@ -201,6 +201,9 @@ export async function demoInvoke<T>(
   const one = <V,>(v: V) => v as unknown as T;
 
   switch (cmd) {
+    case "pwsh_status":
+      // The demo forest needs no sidecar, so PowerShell is "present".
+      return one({ found: true, path: "/usr/local/bin/pwsh", version: "7.5.0" });
     case "sidecar_ping":
       return one({ ok: true, demo: true });
     case "connect_domain":

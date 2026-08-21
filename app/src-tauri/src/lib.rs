@@ -89,9 +89,15 @@ fn repo_root(app: &tauri::AppHandle) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-fn resolve_pwsh() -> PathBuf {
+/// Where PowerShell 7 is, or None if it is not installed. Kept separate from
+/// resolve_pwsh so the UI can ask the question at startup and explain the
+/// answer, rather than the user meeting a bare spawn error on first connect.
+fn find_pwsh() -> Option<PathBuf> {
     if let Ok(p) = std::env::var("PWSH_PATH") {
-        return PathBuf::from(p);
+        let p = PathBuf::from(p);
+        if p.exists() {
+            return Some(p);
+        }
     }
     // An app launched from Finder or Explorer inherits a minimal PATH that
     // does not include where PowerShell installs itself, so `which` fails in
@@ -107,19 +113,58 @@ fn resolve_pwsh() -> PathBuf {
     for k in KNOWN {
         let p = PathBuf::from(k);
         if p.exists() {
-            return p;
+            return Some(p);
         }
     }
+    let finder = if cfg!(windows) { "where" } else { "which" };
     for name in ["pwsh", "pwsh.exe"] {
-        if let Ok(output) = Command::new("which").arg(name).output() {
+        if let Ok(output) = Command::new(finder).arg(name).output() {
             if output.status.success() {
-                let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                if !path.is_empty() {
-                    return PathBuf::from(path);
+                let first = String::from_utf8_lossy(&output.stdout)
+                    .lines()
+                    .next()
+                    .unwrap_or("")
+                    .trim()
+                    .to_string();
+                if !first.is_empty() {
+                    return Some(PathBuf::from(first));
                 }
             }
         }
     }
+    None
+}
+
+#[derive(serde::Serialize)]
+struct PwshStatus {
+    found: bool,
+    path: Option<String>,
+    version: Option<String>,
+}
+
+/// Is PowerShell 7 installed? The one dependency the bundle cannot carry.
+#[tauri::command]
+fn pwsh_status() -> PwshStatus {
+    match find_pwsh() {
+        Some(p) => {
+            let version = Command::new(&p)
+                .args(["-NoProfile", "-NoLogo", "-Command", "$PSVersionTable.PSVersion.ToString()"])
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+                .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+                .filter(|v| !v.is_empty());
+            PwshStatus { found: true, path: Some(p.display().to_string()), version }
+        }
+        None => PwshStatus { found: false, path: None, version: None },
+    }
+}
+
+fn resolve_pwsh() -> PathBuf {
+    if let Some(p) = find_pwsh() {
+        return p;
+    }
+    // Last resort so the spawn error names what was looked for.
     PathBuf::from("pwsh")
 }
 
@@ -1060,6 +1105,7 @@ pub fn run() {
             copy_object,
             get_operations_masters,
             get_recycle_bin_state,
+            pwsh_status,
             list_deleted_objects,
             restore_object,
             get_service_accounts,
