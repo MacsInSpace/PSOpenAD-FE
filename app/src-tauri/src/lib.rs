@@ -68,16 +68,18 @@ impl AppState {
 }
 
 fn repo_root(app: &tauri::AppHandle) -> PathBuf {
+    // A packaged app carries sidecar/ and vendor/ under Contents/Resources
+    // (bundle.resources in tauri.conf.json), laid out exactly as the repo is,
+    // so the sidecar's own relative lookups keep working. Try that first: a
+    // Finder-launched app's cwd is "/" and none of the relative candidates
+    // below mean anything there.
+    if let Ok(res) = app.path().resource_dir() {
+        if res.join("sidecar/OpenADSidecar.ps1").exists() {
+            return res.canonicalize().unwrap_or(res);
+        }
+    }
     if let Ok(cwd) = std::env::current_dir() {
-        let candidates = [
-            cwd.join("../.."),
-            cwd.join(".."),
-            cwd.clone(),
-            app.path()
-                .resource_dir()
-                .unwrap_or_else(|_| cwd.clone())
-                .join("../.."),
-        ];
+        let candidates = [cwd.join("../.."), cwd.join(".."), cwd.clone()];
         for c in candidates {
             if c.join("sidecar/OpenADSidecar.ps1").exists() {
                 return c.canonicalize().unwrap_or(c);
@@ -90,6 +92,23 @@ fn repo_root(app: &tauri::AppHandle) -> PathBuf {
 fn resolve_pwsh() -> PathBuf {
     if let Ok(p) = std::env::var("PWSH_PATH") {
         return PathBuf::from(p);
+    }
+    // An app launched from Finder or Explorer inherits a minimal PATH that
+    // does not include where PowerShell installs itself, so `which` fails in
+    // exactly the case that matters. Check the installer locations directly.
+    const KNOWN: &[&str] = &[
+        "/usr/local/bin/pwsh",
+        "/opt/homebrew/bin/pwsh",
+        "/usr/local/microsoft/powershell/7/pwsh",
+        "/usr/bin/pwsh",
+        "/snap/bin/pwsh",
+        "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    ];
+    for k in KNOWN {
+        let p = PathBuf::from(k);
+        if p.exists() {
+            return p;
+        }
     }
     for name in ["pwsh", "pwsh.exe"] {
         if let Ok(output) = Command::new("which").arg(name).output() {
