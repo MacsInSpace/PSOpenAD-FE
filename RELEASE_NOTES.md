@@ -81,5 +81,6 @@ fork:
 
 ### Platforms
 
-macOS (Apple silicon) in this release. The code has no macOS-specific paths
-beyond locating PowerShell, but Windows and Linux builds are untested.
+macOS, as a universal binary (Apple silicon and Intel), in this release. The
+code has no macOS-specific paths beyond locating PowerShell, but Windows and
+Linux builds are untested.
