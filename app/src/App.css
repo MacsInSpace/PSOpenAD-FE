@@ -2262,3 +2262,20 @@ td.empty {
   border-radius: 3px;
   background: var(--surface2);
 }
+
+/* Bulk results: the reason column must never truncate - the text IS the
+   information, and a reason cut off at the DN told the reader nothing. These
+   outrank the sheet-table cell defaults on specificity, not just on order. */
+.sheet-table td.bulk-warn {
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.sheet-table td.bulk-warn,
+.sheet-table td.bulk-fail {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
+  max-width: none;
+}

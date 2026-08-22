@@ -17,7 +17,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { DirectoryRow } from "../lib/api";
 import { ObjectIcon } from "./ObjectIcon";
 
-type Outcome = { row: DirectoryRow; ok: boolean; error?: string };
+type Outcome = {
+  row: DirectoryRow;
+  ok: boolean;
+  error?: string;
+  /** Succeeded, but the server said something worth showing - e.g. a delete
+      that completed although the result code was not Success. */
+  warning?: string;
+};
 
 export function BulkDialog({
   title,
@@ -55,8 +62,10 @@ export function BulkDialog({
     for (const row of targets) {
       if (cancelled.current) return;
       try {
-        await run(row);
-        results.push({ row, ok: true });
+        const res = (await run(row)) as { warning?: unknown } | null | undefined;
+        const warning =
+          res && typeof res === "object" && typeof res.warning === "string" ? res.warning : undefined;
+        results.push({ row, ok: true, ...(warning ? { warning } : {}) });
       } catch (err) {
         results.push({
           row,
@@ -169,8 +178,17 @@ export function BulkDialog({
                             </span>
                           </span>
                         </td>
-                        <td className={d.ok ? "bulk-ok" : "bulk-fail"}>
-                          {d.ok ? "OK" : (d.error ?? "failed")}
+                        {/* The full text, wrapped, and in a tooltip as well: a
+                            reason cut off at the DN told the reader nothing. */}
+                        <td
+                          className={d.ok ? (d.warning ? "bulk-warn" : "bulk-ok") : "bulk-fail"}
+                          title={d.error ?? d.warning ?? undefined}
+                        >
+                          {d.ok
+                            ? d.warning
+                              ? `OK - the server reported: ${d.warning}`
+                              : "OK"
+                            : (d.error ?? "failed")}
                         </td>
                       </tr>
                     ))}

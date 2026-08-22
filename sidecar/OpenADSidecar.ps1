@@ -1180,7 +1180,29 @@ function Invoke-MethodRemoveObject {
     if (-not $identity) { throw 'identity (DN) is required' }
 
     Write-SidecarLog "removeObject: '$identity'"
-    Remove-OpenADObject -Session $session -Identity $identity -ErrorAction Stop
+    try {
+        Remove-OpenADObject -Session $session -Identity $identity -ErrorAction Stop
+    }
+    catch {
+        # Seen in the field: the server answered the delete with a non-success
+        # result and the object was nonetheless gone - the bulk dialog then said
+        # "0 succeeded, 3 failed" about three accounts that had been deleted. The
+        # directory's state is the truth, so check it before reporting. If the
+        # object is still there the failure is real and stands; if it is gone,
+        # report success and carry the server's complaint as a warning, because
+        # "failed" about a deletion that happened is worse than useless.
+        $reason = $_.Exception.Message
+        $stillThere = $true
+        try {
+            $null = Get-OpenADObject -Session $session -Identity $identity -Property 'distinguishedName' -ErrorAction Stop
+        }
+        catch {
+            if ($_.Exception.Message -match 'Cannot find|No such object|NO_OBJECT|0000208D') { $stillThere = $false }
+        }
+        if ($stillThere) { throw }
+        Write-SidecarLog "removeObject: '$identity' is gone, but the server reported: $reason"
+        return [pscustomobject]@{ ok = $true; identity = $identity; warning = $reason }
+    }
     return [pscustomobject]@{ ok = $true; identity = $identity }
 }
 
