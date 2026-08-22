@@ -1,10 +1,15 @@
 /**
- * Demo directory - used only when the UI runs outside Tauri (plain `vite dev`
- * or `vite preview`), where `invoke` has no backend to talk to.
+ * Demo directory - a small fictional forest that answers every call locally.
  *
- * It exists so the console can be looked at, styled and demonstrated without a
- * domain controller. Inside the real app `isDemo()` is false and every call
- * goes to the sidecar as normal; nothing here is reachable from a Tauri build.
+ * Two ways in. Outside Tauri (plain `vite dev` or `vite preview`) there is no
+ * backend, so it is the only thing that can answer. Inside the packaged app it
+ * is off until someone asks for it from the connect screen, which is what lets
+ * a person download a release and see the console working without a domain
+ * controller, an account, or anything to break.
+ *
+ * Once on it stays on for the rest of the run: switching mid-session would mean
+ * a console showing invented objects beside real ones. Disconnecting and
+ * relaunching returns to the real thing.
  *
  * The forest is deliberately generic - no tenant, school or customer shapes.
  */
@@ -12,10 +17,31 @@ import type { DirectoryRow, DomainSession, ObjectDetail } from "./api";
 
 const NC = "DC=corp,DC=example,DC=com";
 
+const DEMO_FLAG = "psopenad-fe.demo";
+let demoRequested = false;
+
+/** Turn the demo forest on for the rest of this run. */
+export function enableDemo(): void {
+  demoRequested = true;
+  // Survives the reload a dev server does on edit; irrelevant in the packaged
+  // app but harmless there.
+  try {
+    sessionStorage.setItem(DEMO_FLAG, "1");
+  } catch {
+    /* storage disabled - the in-memory flag still holds for this run */
+  }
+}
+
 export function isDemo(): boolean {
-  return (
-    typeof window !== "undefined" && !("__TAURI_INTERNALS__" in window)
-  );
+  if (typeof window === "undefined") return false;
+  if (demoRequested) return true;
+  try {
+    if (sessionStorage.getItem(DEMO_FLAG) === "1") return true;
+  } catch {
+    /* ignore */
+  }
+  // No Tauri backend at all: nothing else can answer, so the demo is it.
+  return !("__TAURI_INTERNALS__" in window);
 }
 
 export const DEMO_SESSION: DomainSession = {

@@ -8,6 +8,8 @@ import {
   saveConnection,
   type DomainSession,
   type SavedConnection,
+  enableDemo,
+  DEMO_SESSION,
 } from "../lib/api";
 
 /** Least -> most secure; first success wins. 636/3269 are LDAPS-only. */
@@ -346,6 +348,27 @@ export function ConnectDialog({ onConnected, compact }: Props) {
       <button type="submit" disabled={busy}>
         {busy ? "Starting PowerShell / binding..." : "Connect"}
       </button>
+
+      {/* Somebody who has just downloaded this has no reason to point it at a
+          live directory to find out what it is. The demo forest is invented,
+          answers locally, and touches no network at all. */}
+      <div className="try-demo">
+        <button
+          type="button"
+          className="btn-link"
+          disabled={busy}
+          onClick={() => {
+            enableDemo();
+            onConnected(DEMO_SESSION);
+          }}
+        >
+          Explore with sample data instead
+        </button>
+        <span className="field-help">
+          A small fictional directory, entirely local. Nothing is contacted and
+          nothing can be changed.
+        </span>
+      </div>
     </form>
   );
 }

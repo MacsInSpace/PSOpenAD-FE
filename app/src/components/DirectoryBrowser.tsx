@@ -32,6 +32,7 @@ import {
   listDeletedObjects,
   restoreObject,
   type RecycleBinState,
+  setAttributes,
 } from "../lib/api";
 import { VERB, groupLabel, kindLabel } from "../lib/adTerms";
 import {
@@ -43,6 +44,10 @@ import {
   type ColumnKey,
 } from "../lib/columns";
 import { ColumnsDialog } from "./ColumnsDialog";
+import {
+  BulkPropertiesDialog,
+  type BulkPropertyChanges,
+} from "./BulkPropertiesDialog";
 import {
   ConsoleTree,
   DELETED_OBJECTS,
@@ -156,6 +161,9 @@ export function DirectoryBrowser({ session }: Props) {
      different here, and the confirm wording and validation differ with it. */
   const [restoreTo, setRestoreTo] = useState<DirectoryRow | null>(null);
   const [copyFrom, setCopyFrom] = useState<DirectoryRow | null>(null);
+  /* ADUC's multi-select property sheet: collect the changes, then hand them
+     to the same runner every other bulk verb uses. */
+  const [bulkProps, setBulkProps] = useState<DirectoryRow[] | null>(null);
   const [fsmo, setFsmo] = useState<
     Array<{ role: string; holder: string | null }> | null
   >(null);
@@ -726,6 +734,21 @@ export function DirectoryBrowser({ session }: Props) {
       });
 
       items.push(SEP);
+      /* ADUC offers the multi-select sheet only for one class at a time, and
+         the fields on it are user attributes - writing `department` to an OU is
+         not a thing the directory will accept. Offer it when the selection is
+         all users, and say why when it is not, rather than hiding the verb and
+         leaving the reader guessing. */
+      const allUsers =
+        targets.length > 0 && targets.every((r) => objectKind(r) === "user");
+      items.push({
+        label: allUsers
+          ? VERB.properties
+          : `${VERB.properties} (users only)`,
+        accel: "Alt+Enter",
+        disabled: !allUsers,
+        onSelect: () => allUsers && setBulkProps(targets),
+      });
       items.push({
         label: "Copy Distinguished Names",
         onSelect: () =>
@@ -1458,6 +1481,39 @@ export function DirectoryBrowser({ session }: Props) {
                   }
                 },
                 () => setCopyFrom(null),
+              );
+            }}
+          />
+        )}
+
+        {bulkProps && (
+          <BulkPropertiesDialog
+            targets={bulkProps}
+            domainKey={session.domainKey}
+            searchBase={rootDn}
+            onCancel={() => setBulkProps(null)}
+            onApply={(changes: BulkPropertyChanges) => {
+              const targets = bulkProps;
+              setBulkProps(null);
+              const fields =
+                Object.keys(changes.set).length + changes.clear.length;
+              setBulk({
+                title: VERB.properties,
+                verb: "Updating",
+                targets,
+                confirmMessage: null,
+                run: (row) =>
+                  setAttributes({
+                    domainKey: session.domainKey,
+                    identity: row.distinguishedName,
+                    ...(Object.keys(changes.set).length
+                      ? { set: changes.set }
+                      : {}),
+                    ...(changes.clear.length ? { clear: changes.clear } : {}),
+                  }),
+              });
+              setStatus(
+                `Applying ${fields} field(s) to ${targets.length} object(s)`,
               );
             }}
           />

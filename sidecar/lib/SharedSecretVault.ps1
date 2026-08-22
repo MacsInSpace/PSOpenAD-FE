@@ -11,6 +11,11 @@
 # any product, so the whole category goes rather than being papered over with a
 # signing identity.
 #
+# The vault module is a separate project, vendored from its own repository at a
+# pinned tag by scripts/sync-secret-vault-modules.ps1 and recorded with a
+# checksum per file. It is not maintained here: fixes belong upstream in that
+# repository, and the vendored copy stays byte-identical to the tag.
+#
 # Nothing here prompts, and nothing here throws at startup. If the vault is
 # unavailable the sidecar still runs; features degrade and the status says why.
 
@@ -29,27 +34,43 @@ function Get-OpenAdFeVaultRoot {
     return $repoRoot
 }
 
-function Get-OpenAdFeSecretManagementManifest {
-    $root = Get-OpenAdFeVaultRoot
-    foreach ($base in @(
-            (Join-Path $root 'modules/Microsoft.PowerShell.SecretManagement'),
-            (Join-Path $root 'vendor/psmodules/Microsoft.PowerShell.SecretManagement'))) {
-        if (-not (Test-Path -LiteralPath $base)) { continue }
-        $ver = Get-ChildItem -LiteralPath $base -Directory -ErrorAction SilentlyContinue |
-            Sort-Object Name -Descending | Select-Object -First 1
-        if (-not $ver) { continue }
-        $manifest = Join-Path $ver.FullName 'Microsoft.PowerShell.SecretManagement.psd1'
-        if (Test-Path -LiteralPath $manifest) { return $manifest }
-    }
-    return $null
-}
+function Get-OpenAdFeVendoredModuleManifest {
+    <#
+    .SYNOPSIS
+        Manifest path for a vendored module, or $null.
+    .DESCRIPTION
+        One resolver for both modules. Both are vendored in the layout
+        Install-Module and the sync script produce - <Name>/<version>/<Name>.psd1 -
+        so the version directory is not optional: SecretManagement resolves a
+        directory registration only when the directory is named after the module,
+        which is why the vault module registers its manifest path rather than its
+        folder. The flat layout is still accepted, because a checkout of the
+        module repo itself is flat.
 
-function Get-OpenAdFeLocalVaultManifest {
+        Bundle first (Contents/Resources/modules), then the vendored copy a dev
+        checkout has.
+    #>
+    param([Parameter(Mandatory)][string]$Name)
+
     $root = Get-OpenAdFeVaultRoot
-    foreach ($candidate in @(
-            (Join-Path $root 'modules/SecretManagement.LocalVault/SecretManagement.LocalVault.psd1'),
-            (Join-Path $root 'sidecar/psmodules/SecretManagement.LocalVault/SecretManagement.LocalVault.psd1'))) {
-        if (Test-Path -LiteralPath $candidate) { return $candidate }
+    $leaf = "$Name.psd1"
+    foreach ($base in @(
+            (Join-Path $root "modules/$Name"),
+            (Join-Path $root "vendor/psmodules/$Name"))) {
+        if (-not (Test-Path -LiteralPath $base)) { continue }
+
+        # Highest version wins, and versions sort as versions - "1.10.0" is
+        # above "1.9.0", which a plain string sort gets backwards.
+        $versions = @(Get-ChildItem -LiteralPath $base -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^\d+(\.\d+)*$' } |
+            Sort-Object { [version]$_.Name } -Descending)
+        foreach ($v in $versions) {
+            $manifest = Join-Path $v.FullName $leaf
+            if (Test-Path -LiteralPath $manifest) { return $manifest }
+        }
+
+        $flat = Join-Path $base $leaf
+        if (Test-Path -LiteralPath $flat) { return $flat }
     }
     return $null
 }
@@ -63,13 +84,13 @@ function Initialize-OpenAdFeSecretVault {
     if ($script:VaultState.ready) { return $script:VaultState }
 
     try {
-        $api = Get-OpenAdFeSecretManagementManifest
+        $api = Get-OpenAdFeVendoredModuleManifest -Name 'Microsoft.PowerShell.SecretManagement'
         if (-not $api) {
             throw 'Microsoft.PowerShell.SecretManagement is not vendored. Run: pwsh ./scripts/sync-secret-vault-modules.ps1'
         }
-        $vault = Get-OpenAdFeLocalVaultManifest
+        $vault = Get-OpenAdFeVendoredModuleManifest -Name 'SecretManagement.LocalVault'
         if (-not $vault) {
-            throw 'SecretManagement.LocalVault is not vendored under sidecar/psmodules/.'
+            throw 'SecretManagement.LocalVault is not vendored. Run: pwsh ./scripts/sync-secret-vault-modules.ps1'
         }
 
         Import-Module -Name $api -ErrorAction Stop

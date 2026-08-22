@@ -1,5 +1,6 @@
 import { invoke as tauriInvoke } from "@tauri-apps/api/core";
 import { demoInvoke, isDemo } from "./demo";
+export { enableDemo, DEMO_SESSION } from "./demo";
 
 /**
  * Every backend call goes through here. In the Tauri app this is a straight
