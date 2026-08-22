@@ -29,7 +29,7 @@ $script:VaultState = @{
 }
 
 function Get-OpenAdFeVaultRoot {
-    # Bundled build first, dev checkout second - same order USM uses.
+    # Bundled build first, dev checkout second - the order every sibling uses.
     $repoRoot = Split-Path $PSScriptRoot -Parent | Split-Path -Parent
     return $repoRoot
 }
