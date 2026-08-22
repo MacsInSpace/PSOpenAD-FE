@@ -364,21 +364,27 @@ export async function copyObject(request: {
   }>("copy_object", { request });
 }
 
-export type TokenPreview =
-  | { ok: true; values: Record<string, string> }
-  | { ok: false; error: string };
+export type TokenPreview = {
+  ok: boolean;
+  checked: number;
+  /** First object that resolved, to show what the template becomes. */
+  sample?: { identity: string; values: Record<string, string> } | null;
+  /** Objects that cannot resolve, and why. */
+  failures: Array<{ identity: string; reason: string }>;
+};
 
 /**
- * Resolve %token% values against one object. Used to show what a bulk write
- * will actually produce before it is applied; a preview that succeeds means
- * the write will not fail on an unresolvable token.
+ * Resolve %token% values against every selected object. Used to show what a
+ * bulk write will actually produce, and to find the objects it cannot resolve
+ * for - checking only one gives false confidence exactly when the selection is
+ * mixed, which is the usual case.
  */
 export async function previewTokens(
   domainKey: string,
-  identity: string,
+  identities: string[],
   values: Record<string, string>,
 ) {
-  return invoke<TokenPreview>("preview_tokens", { domainKey, identity, values });
+  return invoke<TokenPreview>("preview_tokens", { domainKey, identities, values });
 }
 
 export async function setAttributes(request: {

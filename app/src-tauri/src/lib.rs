@@ -776,14 +776,14 @@ async fn preview_tokens(
     state: tauri::State<'_, Arc<AppState>>,
     app: tauri::AppHandle,
     domain_key: String,
-    identity: String,
+    identities: Vec<String>,
     values: Value,
 ) -> Result<Value, String> {
     invoke_sidecar(
         Arc::clone(&state),
         app,
         "previewTokens",
-        json!({ "domainKey": domain_key, "identity": identity, "values": values }),
+        json!({ "domainKey": domain_key, "identities": identities, "values": values }),
     )
     .await
 }

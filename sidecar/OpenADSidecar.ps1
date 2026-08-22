@@ -841,22 +841,46 @@ function Invoke-SidecarRequest {
         'previewTokens' {
             Initialize-OpenAdFeModule
             $session = Get-SessionOrThrow -DomainKey ([string](Get-ParamValue $params 'domainKey'))
-            $identity = [string](Get-ParamValue $params 'identity')
-            if (-not $identity) { throw 'identity (DN) is required' }
             $values = @{}
             $raw = Get-ParamValue $params 'values'
             if ($raw) {
                 foreach ($prop in $raw.PSObject.Properties) { $values[$prop.Name] = [string]$prop.Value }
             }
-            if ($values.Count -eq 0) { return [pscustomobject]@{ ok = $true; values = @{} } }
-            # Resolve exactly as the write would, so a preview that succeeds
-            # means the write will not fail on an unresolvable token.
-            try {
-                $expanded = Expand-OpenAdFeTokens -Session $session -Identity $identity -Values $values
-                return [pscustomobject]@{ ok = $true; values = $expanded }
+
+            $identities = @(Get-ParamValue $params 'identities')
+            if (-not $identities -or $identities.Count -eq 0) {
+                $single = [string](Get-ParamValue $params 'identity')
+                if ($single) { $identities = @($single) }
             }
-            catch {
-                return [pscustomobject]@{ ok = $false; error = $_.Exception.Message }
+            if ($identities.Count -eq 0) { throw 'identities (one or more DNs) are required' }
+            if ($values.Count -eq 0) { return [pscustomobject]@{ ok = $true; checked = 0; failures = @() } }
+
+            # Every selected object, not just the first. Checking one and
+            # reporting "fine" is false confidence exactly when a selection is
+            # mixed - which is the normal case for a bulk edit, and the reason
+            # to check at all.
+            $sample = $null
+            $failures = [System.Collections.Generic.List[object]]::new()
+            foreach ($id in $identities) {
+                try {
+                    $expanded = Expand-OpenAdFeTokens -Session $session -Identity ([string]$id) -Values $values
+                    if (-not $sample) {
+                        $sample = [pscustomobject]@{ identity = [string]$id; values = $expanded }
+                    }
+                }
+                catch {
+                    $failures.Add([pscustomobject]@{
+                            identity = [string]$id
+                            reason   = $_.Exception.Message
+                        })
+                }
+            }
+
+            return [pscustomobject]@{
+                ok       = ($failures.Count -eq 0)
+                checked  = $identities.Count
+                sample   = $sample
+                failures = [object[]]@($failures)
             }
         }
         'setAttributes' {
@@ -1283,7 +1307,10 @@ function Expand-OpenAdFeTokens {
     }
     if ($needed.Count -eq 0) { return $Values }
 
-    $obj = Get-OpenADObject -Session $Session -Identity $Identity -Property '*' -ErrorAction Stop
+    # Only the attributes the tokens name, not '*'. A preview runs this once per
+    # selected object, so asking for everything would be a whole directory read
+    # per row to answer a question about two fields.
+    $obj = Get-OpenADObject -Session $Session -Identity $Identity -Property @($needed) -ErrorAction Stop
 
     $lookup = @{}
     foreach ($prop in $obj.PSObject.Properties) { $lookup[$prop.Name] = $prop.Value }
@@ -1367,7 +1394,23 @@ function Invoke-MethodSetAttributes {
     }
 
     Write-SidecarLog "setAttributes: '$identity' replace=$($replace.Keys -join ',') clear=$($clear -join ',') add=$($add.Keys -join ',') remove=$($remove.Keys -join ',')"
-    Set-OpenADObject @callArgs
+
+    # "Undefined attribute type - 00000057: LdapErr ... Error in attribute
+    # conversion operation" is the server saying one of these names is not in
+    # the schema, but it does not say which, and the reader is left comparing
+    # LDAP error codes. Name the candidates.
+    $names = @($replace.Keys) + @($clear) + @($add.Keys) + @($remove.Keys)
+    try {
+        Set-OpenADObject @callArgs
+    }
+    catch {
+        if ($_.Exception.Message -match 'Undefined attribute type|00000057') {
+            throw ("The directory does not have one of these attributes in its schema: " +
+                ($names -join ', ') +
+                ". Check the spelling, and note that some attributes only exist once a schema extension such as Exchange has been applied.")
+        }
+        throw
+    }
     return [pscustomobject]@{
         ok       = $true
         identity = $identity

@@ -2430,3 +2430,16 @@ td.empty {
 .token-resolved {
   color: var(--green);
 }
+
+/* Objects a token cannot resolve for: named, so they can be deselected. */
+.bulk-token-failures {
+  margin-top: 10px;
+}
+
+.bulk-token-failures ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--text2);
+  font-size: 11.5px;
+  line-height: 1.5;
+}

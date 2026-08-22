@@ -110,7 +110,16 @@ export function BulkPropertiesDialog({
   const [nextRowId, setNextRowId] = useState(1);
   /* What the tokens actually resolve to for the first selected object. */
   const [preview, setPreview] = useState<
-    { state: "off" } | { state: "loading" } | { state: "ok"; values: Record<string, string> } | { state: "error"; message: string }
+    | { state: "off" }
+    | { state: "loading" }
+    | {
+        state: "done";
+        values: Record<string, string>;
+        sampleName: string;
+        failures: Array<{ identity: string; reason: string }>;
+        checked: number;
+      }
+    | { state: "error"; message: string }
   >({ state: "off" });
 
   useEffect(() => {
@@ -157,18 +166,28 @@ export function BulkPropertiesDialog({
       setPreview({ state: "off" });
       return;
     }
-    const first = targets[0];
-    if (!first) return;
+    if (targets.length === 0) return;
     let live = true;
     setPreview({ state: "loading" });
-    void previewTokens(domainKey, first.distinguishedName, changes.set)
+    void previewTokens(
+      domainKey,
+      targets.map((t) => t.distinguishedName),
+      changes.set,
+    )
       .then((res) => {
         if (!live) return;
-        setPreview(
-          res.ok
-            ? { state: "ok", values: res.values }
-            : { state: "error", message: res.error },
-        );
+        const sampleDn = res.sample?.identity;
+        const sampleName =
+          targets.find((t) => t.distinguishedName === sampleDn)?.name ??
+          targets[0]?.name ??
+          "";
+        setPreview({
+          state: "done",
+          values: res.sample?.values ?? {},
+          sampleName,
+          failures: res.failures ?? [],
+          checked: res.checked ?? targets.length,
+        });
       })
       .catch((err) => {
         if (live) {
@@ -215,7 +234,7 @@ export function BulkPropertiesDialog({
                 <tbody>
                   {Object.entries(changes.set).map(([attr, v]) => {
                     const resolved =
-                      preview.state === "ok" ? preview.values[attr] : undefined;
+                      preview.state === "done" ? preview.values[attr] : undefined;
                     return (
                       <tr key={attr}>
                         <td>{labelFor(attr)}</td>
@@ -246,16 +265,43 @@ export function BulkPropertiesDialog({
             {changes.expandTokens && preview.state === "loading" && (
               <p className="field-help">Resolving tokens...</p>
             )}
-            {changes.expandTokens && preview.state === "ok" && (
-              <p className="field-help">
-                Values shown after the arrow are resolved for{" "}
-                <strong>{targets[0]?.name}</strong>. Every object gets its own.
-              </p>
+            {changes.expandTokens && preview.state === "done" && (
+              <>
+                <p className="field-help">
+                  Values after the arrow are resolved for{" "}
+                  <strong>{preview.sampleName}</strong>. Every object gets its
+                  own. Checked all {preview.checked}.
+                </p>
+                {preview.failures.length > 0 && (
+                  <div className="bulk-token-failures">
+                    <p className="bulk-clear-warning">
+                      {preview.failures.length} of {preview.checked} object
+                      {preview.failures.length === 1 ? "" : "s"} cannot resolve
+                      a token and would be skipped. Deselect them, or use a
+                      value that does not depend on the missing attribute.
+                    </p>
+                    <ul>
+                      {preview.failures.slice(0, 6).map((f) => (
+                        <li key={f.identity}>
+                          <span className="mono">
+                            {targets.find((t) => t.distinguishedName === f.identity)
+                              ?.name ?? f.identity}
+                          </span>
+                          {" - "}
+                          {f.reason.replace(/ on '[^']*'/, "")}
+                        </li>
+                      ))}
+                      {preview.failures.length > 6 && (
+                        <li>and {preview.failures.length - 6} more</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </>
             )}
             {preview.state === "error" && (
               <p className="field-help bulk-clear-warning">
-                {preview.message} Fix the token before applying, or this object
-                will fail.
+                Could not check the tokens: {preview.message}
               </p>
             )}
             {clearCount > 0 && (
@@ -408,7 +454,11 @@ export function BulkPropertiesDialog({
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={preview.state === "loading" || preview.state === "error"}
+                disabled={
+                  preview.state === "loading" ||
+                  preview.state === "error" ||
+                  (preview.state === "done" && preview.failures.length > 0)
+                }
                 onClick={() => onApply(changes)}
               >
                 Apply
