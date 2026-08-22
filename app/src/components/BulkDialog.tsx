@@ -51,12 +51,32 @@ export function BulkDialog({
   const [done, setDone] = useState<Outcome[]>([]);
   const [finished, setFinished] = useState(false);
   const cancelled = useRef(false);
+  const running = useRef(false);
 
-  useEffect(() => () => {
-    cancelled.current = true;
+  /* Arm on mount, disarm on unmount - and note the arming, which is not
+     ceremony. StrictMode runs an effect mount -> cleanup -> mount in
+     development, and the ref survives that simulated remount, so a cleanup-only
+     version left `cancelled` true for the real run: the loop returned before
+     the first item and before setFinished, and the dialog sat on
+     "Deleting 1 of 2..." for ever having done nothing at all. */
+  useEffect(() => {
+    cancelled.current = false;
+    return () => {
+      cancelled.current = true;
+    };
   }, []);
 
   const go = useCallback(async () => {
+    /* Exactly once, whatever React does with the effect that calls this.
+       StrictMode invokes that effect twice in development and both invocations
+       see an empty result list, so without this guard every bulk operation ran
+       twice over: the first delete succeeded and the second came back "No such
+       object" about the object it had just removed - which is where "0
+       succeeded, 3 failed" came from for three accounts that were in fact all
+       deleted. A ref, not state, because both invocations happen before React
+       re-renders. */
+    if (running.current) return;
+    running.current = true;
     setStarted(true);
     const results: Outcome[] = [];
     for (const row of targets) {
