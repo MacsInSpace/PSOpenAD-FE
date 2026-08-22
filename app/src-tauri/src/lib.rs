@@ -6,6 +6,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::mpsc::{channel, Receiver, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
@@ -16,7 +17,11 @@ static REQUEST_ID: AtomicU64 = AtomicU64::new(1);
 struct SidecarState {
     child: Child,
     stdin: ChildStdin,
-    stdout: BufReader<std::process::ChildStdout>,
+    /// Response lines, delivered by a reader thread. A channel rather than a
+    /// direct read so the caller can wait with a deadline: a blocking read on
+    /// the pipe cannot be abandoned, and one unanswered request would otherwise
+    /// hold the sidecar mutex for ever and freeze every later call with it.
+    responses: Receiver<String>,
 }
 
 /// Most recent sidecar diagnostics, newest last. Capped so a long-running
@@ -264,12 +269,46 @@ fn ensure_sidecar(state: &AppState, app: &tauri::AppHandle) -> Result<(), String
         }
     }
 
+    // Past the handshake the reader belongs to its own thread, which turns the
+    // pipe into a channel the request path can wait on with a timeout. The
+    // thread ends when the process closes stdout, and dropping the sender is
+    // what tells a waiting caller the sidecar has gone.
+    let (tx, rx) = channel::<String>();
+    std::thread::spawn(move || {
+        let mut stdout = stdout;
+        loop {
+            let mut line = String::new();
+            match stdout.read_line(&mut line) {
+                Ok(0) | Err(_) => break,
+                Ok(_) => {
+                    if tx.send(line).is_err() {
+                        break;
+                    }
+                }
+            }
+        }
+    });
+
     *guard = Some(SidecarState {
         child,
         stdin,
-        stdout,
+        responses: rx,
     });
     Ok(())
+}
+
+/// How long to wait for a reply before deciding the sidecar is not coming back.
+///
+/// Generous, because these are real directory operations over a VPN and a wrong
+/// answer here is a spurious failure. Connecting is the outlier: the ladder
+/// tries each rung in turn and a firewalled port has to time out on its own.
+fn sidecar_timeout(method: &str) -> Duration {
+    match method {
+        "connect" | "ladder" | "probePasswordChannel" | "setPassword" => Duration::from_secs(300),
+        "search" | "listContents" | "listDeletedObjects" | "getGroupMembers"
+        | "getGroupMembership" | "getServiceAccounts" => Duration::from_secs(180),
+        _ => Duration::from_secs(90),
+    }
 }
 
 fn call_sidecar(
@@ -287,21 +326,42 @@ fn call_sidecar(
         "params": params,
     });
     let line = serde_json::to_string(&request).map_err(|e| e.to_string())?;
+    let timeout = sidecar_timeout(method);
 
     let mut guard = state.sidecar.lock().map_err(|e| e.to_string())?;
-    let sidecar = guard.as_mut().ok_or("sidecar not started")?;
 
-    writeln!(sidecar.stdin, "{line}").map_err(|e| format!("write to sidecar: {e}"))?;
-    sidecar
-        .stdin
-        .flush()
-        .map_err(|e| format!("flush sidecar: {e}"))?;
+    // Borrow only long enough to send and wait; the teardown below needs the
+    // guard itself.
+    let outcome = {
+        let sidecar = guard.as_mut().ok_or("sidecar not started")?;
+        match writeln!(sidecar.stdin, "{line}").and_then(|_| sidecar.stdin.flush()) {
+            Ok(()) => sidecar.responses.recv_timeout(timeout),
+            Err(e) => {
+                drop_sidecar(&mut guard);
+                return Err(format!("write to sidecar: {e}"));
+            }
+        }
+    };
 
-    let mut response_line = String::new();
-    sidecar
-        .stdout
-        .read_line(&mut response_line)
-        .map_err(|e| format!("read sidecar: {e}"))?;
+    let response_line = match outcome {
+        Ok(l) => l,
+        Err(RecvTimeoutError::Timeout) => {
+            // The request went out and nothing came back. The sidecar cannot be
+            // asked to abandon it, so replace it: leaving it in place would make
+            // every later call wait behind this one.
+            drop_sidecar(&mut guard);
+            return Err(format!(
+                "The directory did not answer the '{}' request within {} seconds, so the connection was closed. \
+                 Anything already sent may still have been applied - refresh before retrying. Reconnect to continue.",
+                method,
+                timeout.as_secs()
+            ));
+        }
+        Err(RecvTimeoutError::Disconnected) => {
+            drop_sidecar(&mut guard);
+            return Err("The PowerShell sidecar stopped unexpectedly. Reconnect to continue.".into());
+        }
+    };
 
     if response_line.trim().is_empty() {
         return Err("empty response from sidecar (process may have crashed)".into());
@@ -317,6 +377,14 @@ fn call_sidecar(
     }
 
     Ok(response.result.unwrap_or(Value::Null))
+}
+
+/// Kill the sidecar and forget it, so the next call starts a fresh one.
+fn drop_sidecar(guard: &mut std::sync::MutexGuard<'_, Option<SidecarState>>) {
+    if let Some(mut s) = guard.take() {
+        let _ = s.child.kill();
+        let _ = s.child.wait();
+    }
 }
 
 async fn invoke_sidecar(

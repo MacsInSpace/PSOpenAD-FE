@@ -1788,10 +1788,18 @@ while ($true) {
     if (-not $line) { continue }
 
     $id = $null
+    $sw = $null
     try {
         $req = $line | ConvertFrom-Json -ErrorAction Stop
         $id = Get-ParamValue $req 'id'
         $method = [string](Get-ParamValue $req 'method')
+
+        # Log every request as it starts and again with its duration when it
+        # finishes. A request logged as started with no matching finish is the
+        # one that hung, which is the only way to tell from a log after the
+        # fact - and an app that appears frozen gives you nothing else to go on.
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-SidecarLog "-> $method (id $id)"
 
         if ($script:LogVerbose -or $script:LogPwsh) {
             # Verbose, debug, information and warning records all land on
@@ -1833,12 +1841,14 @@ while ($true) {
         $json = ($payload | ConvertTo-Json -Depth 8 -Compress -EnumsAsStrings)
         [Console]::Out.WriteLine($json)
         [Console]::Out.Flush()
+        Write-SidecarLog ("<- $method (id $id) ok in {0} ms" -f [int]$sw.ElapsedMilliseconds)
 
         if ([string](Get-ParamValue $req 'method') -eq 'quit') { break }
     }
     catch {
         $msg = $_.Exception.Message
-        Write-SidecarLog "Error: $msg"
+        $took = if ($sw) { " after $([int]$sw.ElapsedMilliseconds) ms" } else { '' }
+        Write-SidecarLog "Error (id $id)$took : $msg"
         $payload = [ordered]@{
             id     = $id
             ok     = $false
