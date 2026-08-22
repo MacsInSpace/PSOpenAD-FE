@@ -2383,3 +2383,50 @@ td.empty {
   margin: 10px 0 0;
   color: var(--red);
 }
+
+/* -- Raw attributes tab ------------------------------------------------------
+   Three columns: name, value, remove. Monospace, because these are attribute
+   names and templates read character by character. */
+.raw-attr-head,
+.raw-attr-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 34px;
+  gap: 6px;
+  align-items: center;
+}
+
+.raw-attr-head {
+  margin-bottom: 4px;
+  color: var(--text3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.raw-attr-row {
+  margin-bottom: 6px;
+}
+
+.raw-attr-help {
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+.raw-attr-help code {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--surface2);
+}
+
+/* An attribute name that cannot be an attribute name should say so before the
+   directory does. */
+.field-input.is-invalid {
+  border-color: var(--red);
+}
+
+/* What the template actually becomes, next to the template itself. */
+.token-resolved {
+  color: var(--green);
+}

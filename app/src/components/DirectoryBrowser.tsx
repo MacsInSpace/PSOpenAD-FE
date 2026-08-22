@@ -1510,6 +1510,7 @@ export function DirectoryBrowser({ session }: Props) {
                       ? { set: changes.set }
                       : {}),
                     ...(changes.clear.length ? { clear: changes.clear } : {}),
+                    ...(changes.expandTokens ? { expandTokens: true } : {}),
                   }),
               });
               setStatus(

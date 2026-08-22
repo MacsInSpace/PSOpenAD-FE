@@ -364,10 +364,29 @@ export async function copyObject(request: {
   }>("copy_object", { request });
 }
 
+export type TokenPreview =
+  | { ok: true; values: Record<string, string> }
+  | { ok: false; error: string };
+
+/**
+ * Resolve %token% values against one object. Used to show what a bulk write
+ * will actually produce before it is applied; a preview that succeeds means
+ * the write will not fail on an unresolvable token.
+ */
+export async function previewTokens(
+  domainKey: string,
+  identity: string,
+  values: Record<string, string>,
+) {
+  return invoke<TokenPreview>("preview_tokens", { domainKey, identity, values });
+}
+
 export async function setAttributes(request: {
   domainKey: string;
   identity: string;
   set?: Record<string, string>;
+  /** Expand %attributeName% in the values being set, per object. */
+  expandTokens?: boolean;
   clear?: string[];
   /** Multi-valued: append these values, leaving existing ones alone. */
   add?: Record<string, string[]>;

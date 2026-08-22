@@ -769,6 +769,25 @@ fn get_sidecar_log(state: tauri::State<'_, Arc<AppState>>) -> Vec<String> {
     state.log.snapshot()
 }
 
+/// Resolve %token% values against one object, so a bulk write can be previewed
+/// before it is applied.
+#[tauri::command]
+async fn preview_tokens(
+    state: tauri::State<'_, Arc<AppState>>,
+    app: tauri::AppHandle,
+    domain_key: String,
+    identity: String,
+    values: Value,
+) -> Result<Value, String> {
+    invoke_sidecar(
+        Arc::clone(&state),
+        app,
+        "previewTokens",
+        json!({ "domainKey": domain_key, "identity": identity, "values": values }),
+    )
+    .await
+}
+
 /// Whether the forest has the AD Recycle Bin optional feature switched on.
 /// The Deleted Objects node is only offered when it does - without the feature
 /// a deleted object is a stripped tombstone and cannot be restored.
@@ -1173,6 +1192,7 @@ pub fn run() {
             copy_object,
             get_operations_masters,
             get_recycle_bin_state,
+            preview_tokens,
             pwsh_status,
             list_deleted_objects,
             restore_object,

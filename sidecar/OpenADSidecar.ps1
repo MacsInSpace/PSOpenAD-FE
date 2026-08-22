@@ -838,6 +838,27 @@ function Invoke-SidecarRequest {
             Initialize-OpenAdFeModule
             return (Invoke-MethodNewObject -Params $params)
         }
+        'previewTokens' {
+            Initialize-OpenAdFeModule
+            $session = Get-SessionOrThrow -DomainKey ([string](Get-ParamValue $params 'domainKey'))
+            $identity = [string](Get-ParamValue $params 'identity')
+            if (-not $identity) { throw 'identity (DN) is required' }
+            $values = @{}
+            $raw = Get-ParamValue $params 'values'
+            if ($raw) {
+                foreach ($prop in $raw.PSObject.Properties) { $values[$prop.Name] = [string]$prop.Value }
+            }
+            if ($values.Count -eq 0) { return [pscustomobject]@{ ok = $true; values = @{} } }
+            # Resolve exactly as the write would, so a preview that succeeds
+            # means the write will not fail on an unresolvable token.
+            try {
+                $expanded = Expand-OpenAdFeTokens -Session $session -Identity $identity -Values $values
+                return [pscustomobject]@{ ok = $true; values = $expanded }
+            }
+            catch {
+                return [pscustomobject]@{ ok = $false; error = $_.Exception.Message }
+            }
+        }
         'setAttributes' {
             Initialize-OpenAdFeModule
             return (Invoke-MethodSetAttributes -Params $params)
@@ -1236,6 +1257,61 @@ function Invoke-MethodNewObject {
     return (ConvertTo-OpenAdFeDirectoryRow -Object $created -ObjectClassHint $type)
 }
 
+# %token% substitution for bulk attribute writes.
+#
+# A token is an attribute name of the object being written, so
+# "%givenName%.%sn%@example.com" becomes that user's own address. Resolved here
+# rather than in the UI because here the whole object is available: the result
+# pane only carries a handful of columns, and a token is worth little if it can
+# only reach the four attributes that happened to be on screen.
+#
+# An unresolvable token is a hard failure for that object. The alternatives are
+# both worse: writing the literal "%givenName%" into a directory, or silently
+# writing an empty value over something real.
+function Expand-OpenAdFeTokens {
+    param(
+        [Parameter(Mandatory)]$Session,
+        [Parameter(Mandatory)][string]$Identity,
+        [Parameter(Mandatory)][hashtable]$Values
+    )
+
+    $needed = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($v in $Values.Values) {
+        foreach ($m in [regex]::Matches([string]$v, '%([A-Za-z][A-Za-z0-9-]*)%')) {
+            [void]$needed.Add($m.Groups[1].Value)
+        }
+    }
+    if ($needed.Count -eq 0) { return $Values }
+
+    $obj = Get-OpenADObject -Session $Session -Identity $Identity -Property '*' -ErrorAction Stop
+
+    $lookup = @{}
+    foreach ($prop in $obj.PSObject.Properties) { $lookup[$prop.Name] = $prop.Value }
+
+    $resolved = @{}
+    foreach ($name in $needed) {
+        $match = $lookup.Keys | Where-Object { $_ -eq $name } | Select-Object -First 1
+        if (-not $match) {
+            throw "No attribute '$name' on '$Identity', so %$name% cannot be resolved."
+        }
+        $val = ConvertTo-OpenAdFeScalar -Value $lookup[$match]
+        if ($null -eq $val -or [string]$val -eq '') {
+            throw "'$name' is empty on '$Identity', so %$name% would write nothing."
+        }
+        $resolved[$name] = [string]$val
+    }
+
+    $out = @{}
+    foreach ($key in $Values.Keys) {
+        $text = [string]$Values[$key]
+        foreach ($name in $resolved.Keys) {
+            $text = [regex]::Replace($text, "%$([regex]::Escape($name))%", [System.Text.RegularExpressions.MatchEvaluator] { $resolved[$name] }, 'IgnoreCase')
+        }
+        $out[$key] = $text
+    }
+    return $out
+}
+
 function Invoke-MethodSetAttributes {
     param($Params)
     $session = Get-SessionOrThrow -DomainKey ([string](Get-ParamValue $Params 'domainKey'))
@@ -1272,6 +1348,12 @@ function Invoke-MethodSetAttributes {
             $vals = @($prop.Value | Where-Object { $null -ne $_ -and [string]$_ -ne '' })
             if ($vals.Count -gt 0) { $remove[$prop.Name] = $vals }
         }
+    }
+
+    # Tokens only apply to values being written, never to attribute names and
+    # never to a clear - there is nothing to substitute into a removal.
+    if ([bool](Get-ParamValue $Params 'expandTokens' $false) -and $replace.Count -gt 0) {
+        $replace = Expand-OpenAdFeTokens -Session $session -Identity $identity -Values $replace
     }
 
     $callArgs = @{ Session = $session; Identity = $identity; ErrorAction = 'Stop' }

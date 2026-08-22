@@ -70,7 +70,12 @@ type Seed = {
   children?: Seed[];
 };
 
-/** A small but believable forest: the containers ADUC shows on a fresh domain. */
+/**
+ * A believable forest: the containers ADUC shows on a fresh domain, plus enough
+ * departments, people, machines and groups that multi-select, sorting, columns
+ * and the bulk sheet all have something real to work on. Every name is
+ * invented - scientists and mathematicians - and every address is example.com.
+ */
 const FOREST: Seed[] = [
   {
     rdn: "CN=Builtin",
@@ -89,6 +94,10 @@ const FOREST: Seed[] = [
     children: [
       { rdn: "CN=WKS-0148", cls: "computer", sam: "WKS-0148$", desc: "Windows 11 Pro 24H2" },
       { rdn: "CN=WKS-0212", cls: "computer", sam: "WKS-0212$", desc: "Windows 11 Pro 24H2" },
+      { rdn: "CN=WKS-0233", cls: "computer", sam: "WKS-0233$", desc: "Windows 11 Pro 24H2" },
+      { rdn: "CN=WKS-0301", cls: "computer", sam: "WKS-0301$", desc: "Windows 11 Pro 23H2", enabled: false },
+      { rdn: "CN=LAP-0044", cls: "computer", sam: "LAP-0044$", desc: "Windows 11 Pro 24H2" },
+      { rdn: "CN=LAP-0071", cls: "computer", sam: "LAP-0071$", desc: "Windows 11 Pro 24H2" },
     ],
   },
   {
@@ -113,8 +122,15 @@ const FOREST: Seed[] = [
           { rdn: "CN=Ada Lovelace", cls: "user", sam: "alovelace", display: "Ada Lovelace", desc: "Principal Engineer" },
           { rdn: "CN=Grace Hopper", cls: "user", sam: "ghopper", display: "Grace Hopper", desc: "Engineering Manager" },
           { rdn: "CN=Alan Turing", cls: "user", sam: "aturing", display: "Alan Turing", desc: "Research", enabled: false },
+          { rdn: "CN=Katherine Johnson", cls: "user", sam: "kjohnson", display: "Katherine Johnson", desc: "Senior Engineer" },
+          { rdn: "CN=Barbara Liskov", cls: "user", sam: "bliskov", display: "Barbara Liskov", desc: "Principal Engineer" },
+          { rdn: "CN=Edsger Dijkstra", cls: "user", sam: "edijkstra", display: "Edsger Dijkstra", desc: "Systems Engineer" },
+          { rdn: "CN=Margaret Hamilton", cls: "user", sam: "mhamilton", display: "Margaret Hamilton", desc: "Software Lead" },
           { rdn: "CN=Engineering Staff", cls: "group", sam: "eng-staff", desc: "All engineering personnel" },
+          { rdn: "CN=Engineering Admins", cls: "group", sam: "eng-admins", desc: "Elevated rights for engineering" },
           { rdn: "CN=BUILD-01", cls: "computer", sam: "BUILD-01$", desc: "Build agent" },
+          { rdn: "CN=BUILD-02", cls: "computer", sam: "BUILD-02$", desc: "Build agent" },
+          { rdn: "CN=WKS-0402", cls: "computer", sam: "WKS-0402$", desc: "Windows 11 Pro 24H2" },
         ],
       },
       {
@@ -123,7 +139,48 @@ const FOREST: Seed[] = [
         desc: "Finance staff",
         children: [
           { rdn: "CN=Rosalind Franklin", cls: "user", sam: "rfranklin", display: "Rosalind Franklin", desc: "Financial Controller" },
+          { rdn: "CN=Dorothy Vaughan", cls: "user", sam: "dvaughan", display: "Dorothy Vaughan", desc: "Payroll Officer" },
+          { rdn: "CN=Mary Jackson", cls: "user", sam: "mjackson", display: "Mary Jackson", desc: "Accounts Payable" },
           { rdn: "CN=Finance Staff", cls: "group", sam: "fin-staff", desc: "All finance personnel" },
+          { rdn: "CN=Payroll Approvers", cls: "group", sam: "payroll-approvers", desc: "May approve payroll runs" },
+          { rdn: "CN=WKS-0155", cls: "computer", sam: "WKS-0155$", desc: "Windows 11 Pro 24H2" },
+        ],
+      },
+      {
+        rdn: "OU=Support",
+        cls: "organizationalUnit",
+        desc: "Service desk",
+        children: [
+          { rdn: "CN=Hedy Lamarr", cls: "user", sam: "hlamarr", display: "Hedy Lamarr", desc: "Service Desk Lead" },
+          { rdn: "CN=Tim Berners-Lee", cls: "user", sam: "tbernerslee", display: "Tim Berners-Lee", desc: "Service Desk Analyst" },
+          { rdn: "CN=Radia Perlman", cls: "user", sam: "rperlman", display: "Radia Perlman", desc: "Network Analyst" },
+          { rdn: "CN=Support Staff", cls: "group", sam: "support-staff", desc: "All service desk personnel" },
+          { rdn: "CN=WKS-0508", cls: "computer", sam: "WKS-0508$", desc: "Windows 11 Pro 24H2" },
+          { rdn: "CN=WKS-0509", cls: "computer", sam: "WKS-0509$", desc: "Windows 11 Pro 24H2" },
+        ],
+      },
+      {
+        rdn: "OU=Research",
+        cls: "organizationalUnit",
+        desc: "Research staff and lab machines",
+        children: [
+          { rdn: "CN=Marie Curie", cls: "user", sam: "mcurie", display: "Marie Curie", desc: "Head of Research" },
+          { rdn: "CN=Emmy Noether", cls: "user", sam: "enoether", display: "Emmy Noether", desc: "Research Fellow" },
+          { rdn: "CN=Srinivasa Ramanujan", cls: "user", sam: "sramanujan", display: "Srinivasa Ramanujan", desc: "Research Fellow" },
+          { rdn: "CN=Research Staff", cls: "group", sam: "research-staff", desc: "All research personnel" },
+          { rdn: "CN=LAB-0007", cls: "computer", sam: "LAB-0007$", desc: "Lab workstation" },
+          { rdn: "CN=LAB-0008", cls: "computer", sam: "LAB-0008$", desc: "Lab workstation", enabled: false },
+        ],
+      },
+      {
+        rdn: "OU=Leavers",
+        cls: "organizationalUnit",
+        desc: "Disabled accounts pending removal",
+        children: [
+          { rdn: "CN=Charles Babbage", cls: "user", sam: "cbabbage", display: "Charles Babbage", desc: "Left 2026-02-14", enabled: false },
+          { rdn: "CN=John von Neumann", cls: "user", sam: "jvonneumann", display: "John von Neumann", desc: "Left 2026-03-30", enabled: false },
+          { rdn: "CN=Claude Shannon", cls: "user", sam: "cshannon", display: "Claude Shannon", desc: "Left 2026-05-01", enabled: false },
+          { rdn: "CN=Ken Thompson", cls: "user", sam: "kthompson", display: "Ken Thompson", desc: "Left 2026-06-11", enabled: false },
         ],
       },
       {
@@ -133,6 +190,9 @@ const FOREST: Seed[] = [
         children: [
           { rdn: "CN=svc-backup", cls: "user", sam: "svc-backup", desc: "Backup service account" },
           { rdn: "CN=svc-monitor", cls: "user", sam: "svc-monitor", desc: "Monitoring service account", enabled: false },
+          { rdn: "CN=svc-sql", cls: "user", sam: "svc-sql", desc: "Database service account" },
+          { rdn: "CN=svc-print", cls: "user", sam: "svc-print", desc: "Print service account" },
+          { rdn: "CN=Service Accounts", cls: "group", sam: "service-accounts", desc: "All non-interactive accounts" },
         ],
       },
     ],
@@ -227,6 +287,44 @@ export async function demoInvoke<T>(
   const one = <V,>(v: V) => v as unknown as T;
 
   switch (cmd) {
+    case "preview_tokens": {
+      // Resolve from the demo row so the Attributes tab can be tried out; the
+      // real one resolves from the whole object.
+      const dn = String((args as { identity?: unknown }).identity ?? "");
+      const row = allRows().find((r: DirectoryRow) => r.distinguishedName === dn);
+      const values = ((args as { values?: Record<string, string> }).values) ?? {};
+      const field = (name: string): string | undefined => {
+        const map: Record<string, string | null | undefined> = {
+          samaccountname: row?.samAccountName,
+          cn: row?.name,
+          name: row?.name,
+          displayname: row?.displayName,
+          mail: row?.mail,
+          userprincipalname: row?.userPrincipalName,
+          description: row?.description,
+          givenname: row?.name?.split(" ")[0],
+          sn: row?.name?.split(" ").slice(1).join(" ") || undefined,
+        };
+        const v = map[name.toLowerCase()];
+        return v ?? undefined;
+      };
+      const out: Record<string, string> = {};
+      for (const [attr, tpl] of Object.entries(values)) {
+        let bad: string | null = null;
+        out[attr] = tpl.replace(/%([A-Za-z][A-Za-z0-9-]*)%/g, (_m, n: string) => {
+          const v = field(n);
+          if (v === undefined || v === "") bad = n;
+          return v ?? "";
+        });
+        if (bad) {
+          return one({
+            ok: false,
+            error: `No attribute '${bad}' on this object, so %${bad}% cannot be resolved.`,
+          });
+        }
+      }
+      return one({ ok: true, values: out });
+    }
     case "pwsh_status":
       // The demo forest needs no sidecar, so PowerShell is "present".
       return one({ found: true, path: "/usr/local/bin/pwsh", version: "7.5.0" });
