@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import appIcon from "./assets/app-icon.png";
 import { ConnectDialog } from "./components/ConnectDialog";
 import { DirectoryBrowser } from "./components/DirectoryBrowser";
 import { PowerShellRequired } from "./components/PowerShellRequired";
@@ -66,7 +67,7 @@ function App() {
     <div className={`shell${onConsole ? " is-console" : " is-connect"}`}>
       {pwshMissing === true && <PowerShellRequired onRecheck={checkPwsh} />}
       <header className="titlebar">
-        <span className="brand-mark" aria-hidden />
+        <img className="brand-mark" src={appIcon} alt="" aria-hidden />
         <span className="brand">PSOpenAD-FE</span>
 
         {sessions.length > 0 && (

@@ -2,6 +2,42 @@
 
 Cross-platform Tauri desktop UI for [PSOpenAD](https://github.com/MacsInSpace/PSOpenAD) (fork of [jborean93/PSOpenAD](https://github.com/jborean93/PSOpenAD)). Aims toward Active Directory Users and Computers-style management on Mac, Windows, and Linux via PowerShell 7.
 
+## Install
+
+Download the DMG from [Releases](https://github.com/MacsInSpace/PSOpenAD-FE/releases)
+and drag the app to Applications. **PowerShell 7 is the only thing you need to
+install separately** - everything else, including PSOpenAD itself, is inside the
+bundle. If it is missing, the app says so at startup and offers the download.
+
+The build is signed with a Developer ID but is **not notarised**, so macOS
+quarantines it. On older versions, right-click the app and choose Open. That no
+longer works on recent macOS, so clear the quarantine flag instead:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/PSOpenAD.app
+```
+
+`-d` deletes that one attribute and `-r` applies it through the bundle; without
+`-r` only the top-level folder is cleared and the app still refuses to launch.
+Avoid `-c`, which strips every extended attribute rather than just the
+quarantine flag. Code signing is unaffected either way - verify with
+`codesign --verify --deep --strict /Applications/PSOpenAD.app`.
+
+## Try it without a domain controller
+
+The connect screen offers **Explore with sample data**: a small invented forest
+of users, groups, computers and OUs that answers entirely locally. Nothing is
+contacted, nothing can be changed, and the title bar shows a **DEMO DATA**
+badge throughout. It is the fastest way to see whether this is the tool you
+want, and it needs no directory, no account and no PowerShell.
+
+## Several directories at once
+
+Connections are saved and shown as tabs across the top, so a technician working
+across several sites switches between them without reconnecting. Each saved
+connection keeps its server, username, label and bind method; the password is
+kept in an encrypted local vault, described under Prerequisites.
+
 ## What it looks like
 
 An MMC console, on purpose. Menu bar, toolbar, console tree, result pane,
@@ -113,7 +149,19 @@ being other people's code.
 - [PowerShell 7.4+](https://github.com/PowerShell/PowerShell) (`pwsh` on PATH)
 - Rust (stable) + Node.js 20+
 
-Saved connections store metadata under the app data directory and keep passwords in the **OS keychain** (macOS Keychain / Windows Credential Manager / Linux Secret Service) - not in plaintext JSON.
+Saved connections keep their non-secret details (server, username, label, bind
+method) under the app data directory. Passwords go to an encrypted local vault -
+`SecretManagement.LocalVault`, vendored under `vendor/psmodules` - and never
+into that file.
+
+**No OS credential store is used**: no macOS Keychain, no Windows Credential
+Manager, no Linux Secret Service. Keychain item ACLs bind to the accessing
+binary's code-signing identity, so every rebuild produced a fresh prompt; the
+vault avoids the category rather than working around it. On macOS and Linux the
+store is AES-256-GCM under a key derived from this machine and this user, so a
+copied profile directory is unreadable elsewhere; Windows uses DPAPI. Nothing
+prompts, and a vault that cannot be read degrades to typing the password each
+time rather than failing.
 
 This repo ships a **patched** build under `vendor/PSOpenAD` (includes `-TargetSpnHost` for Kerberos-by-IP). Prefer that over the gallery package when using the Kerberos seal channel.
 
@@ -154,18 +202,20 @@ Vite listens on `http://localhost:14320`.
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint:conventions` | StrictMode and ASCII checks (see Project conventions) |
 
-### Demo mode (no domain controller needed)
+### Demo mode
 
-Run the front end **without** Tauri and it serves a built-in sample forest
-instead of talking to a sidecar, so you can see the console without a DC:
+The same sample forest offered on the connect screen (see above). Running the
+front end **without** Tauri serves it automatically, since there is no sidecar
+to talk to:
 
 ```bash
 cd app
 npm run dev          # http://localhost:14320
 ```
 
-The title bar shows a **DEMO DATA** badge whenever this is active. Inside the
-real Tauri app it never triggers - see `app/src/lib/demo.ts`.
+In a packaged build it is off until asked for. Either way the title bar shows a
+**DEMO DATA** badge while it is active, and writes are refused - see
+`app/src/lib/demo.ts`.
 
 ## Layout
 

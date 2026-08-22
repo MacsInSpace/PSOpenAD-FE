@@ -9,7 +9,7 @@
  * Its own tree state rather than the console's: expanding a node here should
  * not disturb what the console is showing behind the dialog.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getChildren, type DirectoryRow } from "../lib/api";
 import { ObjectIcon } from "./ObjectIcon";
 
@@ -47,10 +47,28 @@ export function ContainerPicker({
   onPick: (dn: string) => void;
 }) {
   const [nodes, setNodes] = useState<Node[]>([]);
+  /* A mirror of `nodes` that can be read synchronously. React runs a state
+     updater during render, so anything an updater assigns is not yet set when
+     the line after setNodes runs - which is how expanding a node used to
+     decide it had nothing to load and quietly do nothing. */
+  const nodesRef = useRef<Node[]>([]);
   const [selected, setSelected] = useState<string>(rootDn);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const blocked = new Set(disallow.map((d) => d.toLowerCase()));
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+
+  const findNode = (list: Node[], dn: string): Node | undefined => {
+    for (const n of list) {
+      if (n.dn === dn) return n;
+      const found = n.children ? findNode(n.children, dn) : undefined;
+      if (found) return found;
+    }
+    return undefined;
+  };
 
   const toNodes = (rows: DirectoryRow[]): Node[] =>
     rows
@@ -86,13 +104,13 @@ export function ContainerPicker({
 
   const toggle = useCallback(
     async (dn: string) => {
-      let needsLoad = false;
+      // Decided from the ref, before the update, so the answer is real.
+      const current = findNode(nodesRef.current, dn);
+      const needsLoad = !!current && !current.expanded && !current.loaded;
+
       const walk = (list: Node[]): Node[] =>
         list.map((n) => {
-          if (n.dn === dn) {
-            needsLoad = !n.expanded && !n.loaded;
-            return { ...n, expanded: !n.expanded };
-          }
+          if (n.dn === dn) return { ...n, expanded: !n.expanded };
           return n.children ? { ...n, children: walk(n.children) } : n;
         });
       setNodes((prev) => walk(prev));

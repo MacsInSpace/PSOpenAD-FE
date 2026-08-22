@@ -2601,7 +2601,7 @@ dependencies = [
 
 [[package]]
 name = "psopenad-fe"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "keyring",
  "serde",

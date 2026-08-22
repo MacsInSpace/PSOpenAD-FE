@@ -193,12 +193,14 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+/* The app's own icon, so the title bar matches the Dock and the DMG rather
+   than showing a placeholder square that means nothing. */
 .brand-mark {
-  width: 12px;
-  height: 12px;
-  flex: 0 0 12px;
-  border-radius: 2px;
-  background: var(--accent);
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .brand {

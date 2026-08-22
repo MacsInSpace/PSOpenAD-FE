@@ -44,6 +44,7 @@ import {
   type ColumnKey,
 } from "../lib/columns";
 import { ColumnsDialog } from "./ColumnsDialog";
+import { openExternal } from "../lib/external";
 import {
   BulkPropertiesDialog,
   type BulkPropertyChanges,
@@ -1034,19 +1035,24 @@ export function DirectoryBrowser({ session }: Props) {
                 ),
           },
           SEP,
+          /* window.open does nothing useful inside a Tauri webview, so these
+             go through the opener plugin - see lib/external.ts. */
+          {
+            label: "PSOpenAD-FE on GitHub",
+            onSelect: () =>
+              openExternal("https://github.com/MacsInSpace/PSOpenAD-FE"),
+          },
+          {
+            label: "PSOpenAD on GitHub",
+            onSelect: () =>
+              openExternal("https://github.com/jborean93/PSOpenAD"),
+          },
+          SEP,
           {
             label: "About PSOpenAD-FE",
             onSelect: () =>
               setStatus(
-                "PSOpenAD-FE - ADUC-style front end for PSOpenAD (jborean93). Not a Microsoft product.",
-              ),
-          },
-          {
-            label: "PSOpenAD documentation",
-            onSelect: () =>
-              void window.open?.(
-                "https://github.com/jborean93/PSOpenAD/blob/main/docs/en-US/PSOpenAD.md",
-                "_blank",
+                `PSOpenAD-FE ${__APP_VERSION__} - ADUC-style front end for PSOpenAD (jborean93). Not a Microsoft product.`,
               ),
           },
         ],

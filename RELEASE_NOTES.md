@@ -1,5 +1,59 @@
 # Release notes
 
+## 1.0.1 - 2026-08-22
+
+Bug fixes found in use, and two additions. **Upgrade from 1.0.0 is worth doing**
+- one of these was applying every bulk operation twice.
+
+### Fixed
+
+- **Bulk operations ran twice.** Delete, Move, Enable, Disable and Add to group
+  all applied themselves to every selected object twice over. Delete was the
+  only one that showed it, because a second delete fails: "0 succeeded, 3
+  failed" was three accounts deleted successfully and then deleted again, with
+  the second attempt's failure being the one reported. A second Disable just
+  succeeds quietly, which is why the others went unnoticed.
+- **The bulk dialog could hang for ever** on "Deleting 1 of 2..." without
+  running anything at all.
+- **A stuck directory call could freeze the whole app**, with no cancel and no
+  recovery but force-quit. Requests now have a deadline; a wedged sidecar is
+  replaced rather than left holding every later call behind it.
+- **A delete is now reported by what the directory says**, not by the result
+  code alone. An object that is gone reports success even if the server
+  complained on the way.
+- **The reason column no longer truncates**, so a failure explains itself
+  instead of stopping at the distinguished name.
+- **Nine property-sheet tabs fit on one row**; Attribute Editor was being
+  clipped out of reach.
+- **Browsing to another domain in the forest** names the domain the object
+  lives in and how to reach it, instead of a bare LDAP referral.
+- **Very large containers** no longer time out the console tree, and the status
+  bar says when a container holds more than the pane is showing rather than
+  reporting the cap as a total.
+
+### Added
+
+- **Multi-select properties.** ADUC's shared property sheet: General, Address
+  and Organization, every field with a checkbox, only ticked fields written to
+  every selected object. A ticked field left empty clears that attribute, and
+  nothing is written until a summary of exactly what changes has been confirmed.
+- **An Attributes tab** on that sheet for any attribute the schema allows, with
+  `%attributeName%` substitution resolved per object - so
+  `%givenName%.%sn%@example.com` gives each user their own. Every selected
+  object is checked before anything is written, and Apply is refused while any
+  of them cannot resolve.
+- **Sample data from the connect screen**, so a downloaded build can be tried
+  without a directory, an account, or anything to break.
+
+### Note for macOS
+
+The build is signed but not notarised. Right-click and Open no longer works on
+recent macOS; clear the quarantine flag instead:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/PSOpenAD.app
+```
+
 ## 1.0.0 - 2026-08-21
 
 First release. A cross-platform Active Directory Users and Computers, built as
