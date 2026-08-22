@@ -9,9 +9,13 @@ and drag the app to Applications. **PowerShell 7 is the only thing you need to
 install separately** - everything else, including PSOpenAD itself, is inside the
 bundle. If it is missing, the app says so at startup and offers the download.
 
-The build is signed with a Developer ID but is **not notarised**, so macOS
-quarantines it. On older versions, right-click the app and choose Open. That no
-longer works on recent macOS, so clear the quarantine flag instead:
+The build is signed with a Developer ID and **notarised** by Apple, so it opens
+normally on a machine with internet access - Gatekeeper fetches the notarisation
+ticket at first launch.
+
+The ticket is not stapled into the bundle, which matters in one case: a machine
+with **no route to Apple** at first launch cannot fetch it, and macOS then
+refuses to open the app. Clear the quarantine flag if that is you:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/PSOpenAD.app

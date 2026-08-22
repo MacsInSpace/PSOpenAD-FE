@@ -47,8 +47,12 @@ Bug fixes found in use, and two additions. **Upgrade from 1.0.0 is worth doing**
 
 ### Note for macOS
 
-The build is signed but not notarised. Right-click and Open no longer works on
-recent macOS; clear the quarantine flag instead:
+Signed with a Developer ID and notarised by Apple, so it opens normally where
+the machine can reach Apple at first launch - Gatekeeper fetches the ticket
+then.
+
+The ticket is not stapled into the bundle, so a first launch with no route to
+Apple will still be refused. If that is you, clear the quarantine flag:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/PSOpenAD.app
